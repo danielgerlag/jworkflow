@@ -19,8 +19,9 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     private final Logger logger;
     
     @Inject
-    public WorkflowExecutorImpl(WorkflowRegistry registry) {
+    public WorkflowExecutorImpl(WorkflowRegistry registry, Logger logger) {
         this.registry = registry;
+        this.logger = logger;
     }
     
     @Override
@@ -35,7 +36,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         }
         
         exePointers.forEach((ExecutionPointer pointer) -> {
-            //pointer.setActive(true);
+            
             Optional<WorkflowStep> step = def.getSteps().stream().filter(x -> x.getId() == pointer.getStepId()).findFirst();
             
             if (step.isPresent()) {
@@ -89,9 +90,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                             
                     
                 
-                } catch (InstantiationException ex) {
-                    Logger.getLogger(WorkflowExecutorImpl.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IllegalAccessException ex) {
+                } catch (Exception ex) {
                     Logger.getLogger(WorkflowExecutorImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
@@ -115,8 +114,28 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 workflow.setNextExecution((long)0);
                 return;
             }
-            //workflow.setNextExecution(Math.min(0, 0));
+            long pointerSleep = pointer.getSleepUntil().getTime();
+            workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
         });
+        
+        if (workflow.getNextExecution() == null) {
+            int forks = 1;
+            int terminals = 0;
+            
+            for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
+                forks = Math.max(pointer.getConcurrentFork(), forks);
+                if (pointer.isPathTerminator())
+                    terminals++;
+                
+                if (forks <= terminals) {
+                    workflow.setStatus(WorkflowStatus.COMPLETE);
+                    workflow.setCompleteTime(new Date());
+                }
+                
+             }
+            
+                        
+        }
         
     }
     

@@ -6,5 +6,5 @@ public interface PersistenceProvider {
     String createNewWorkflow(WorkflowInstance workflow);
     void persistWorkflow(WorkflowInstance workflow);
     Iterable<String> getRunnableInstances();
-    WorkflowInstance GetWorkflowInstance(String id);
+    WorkflowInstance getWorkflowInstance(String id);
 }

@@ -4,7 +4,7 @@ package com.jworkflow.kernel.models;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorkflowDefinition {
+public final class WorkflowDefinition {
     private String id;
     private int version;
     private String description;
@@ -54,5 +54,9 @@ public class WorkflowDefinition {
 
     public void setSteps(List<WorkflowStep> steps) {
         this.steps = steps;
+    }
+    
+    public void addStep(WorkflowStep step) {
+        this.steps.add(step);
     }
 }
