@@ -10,14 +10,15 @@ public final class WorkflowDefinition {
     private String description;
     private int initialStep;
     private List<WorkflowStep> steps;
+    private Class dataType;
 
-    WorkflowDefinition() {
+    public WorkflowDefinition() {
         setSteps(new ArrayList<>());
     }
 
 
     public String getId() {
-        return id;
+        return id;        
     }
 
     public void setId(String id) {
@@ -55,8 +56,19 @@ public final class WorkflowDefinition {
     public void setSteps(List<WorkflowStep> steps) {
         this.steps = steps;
     }
-    
-    public void addStep(WorkflowStep step) {
-        this.steps.add(step);
+
+    /**
+     * @return the dataType
+     */
+    public Class getDataType() {
+        return dataType;
     }
+
+    /**
+     * @param dataType the dataType to set
+     */
+    public void setDataType(Class dataType) {
+        this.dataType = dataType;
+    }
+    
 }

@@ -38,7 +38,8 @@ public class WorkflowRegistryImpl implements WorkflowRegistry{
         if (registry.containsKey(key))
             throw new Exception("already registered");
         
-        WorkflowBuilder builder = null;
+        WorkflowBuilder baseBuilder = new WorkflowBuilder();
+        TypedWorkflowBuilder builder = baseBuilder.UseData(workflow.getDataType());        
         
         workflow.build(builder);
         WorkflowDefinition def = builder.build(workflow.getId(), workflow.getVersion());
