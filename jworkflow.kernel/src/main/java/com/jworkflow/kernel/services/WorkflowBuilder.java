@@ -20,7 +20,7 @@ public class WorkflowBuilder {
         this.steps = new ArrayList<>();
     }
     
-    public <TData> TypedWorkflowBuilder<TData> UseData(Class<TData> dataType) {                
+    public <TData> TypedWorkflowBuilder<TData> UseData(Class<TData> dataType) {
         TypedWorkflowBuilder<TData> result = new TypedWorkflowBuilder<>(dataType, this.steps, this.getInitialStep());        
         return result;
     }
