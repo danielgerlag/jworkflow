@@ -47,7 +47,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     
                     logger.log(Level.INFO, String.format("Starting step %s on workflow %s", step.get().getName(), workflow.getId()));
                     
-                    StepBody body = (StepBody)step.get().getBodyType().newInstance();
+                    StepBody body = (StepBody)step.get().constructBody();
                     
                     //todo: inputs
                     

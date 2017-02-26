@@ -5,23 +5,20 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
-public class StepBuilder<TData, TStep extends StepBody> {
+public class StepOutcomeBuilder<TData> {
      
     
     private final WorkflowBuilder workflowBuilder;
-    private final WorkflowStep step;
+    private final StepOutcome outcome;
     private final Class<TData> dataClass;
     
     
-    public StepBuilder(Class<TData> dataClass, Class<TStep> stepClass, WorkflowBuilder workflowBuilder, WorkflowStep step) {
+    public StepOutcomeBuilder(Class<TData> dataClass, WorkflowBuilder workflowBuilder, StepOutcome outcome) {
         this.workflowBuilder = workflowBuilder;
-        this.step = step;
+        this.outcome = outcome;
         this.dataClass = dataClass;
     }
-    
-    public WorkflowStep getStep() {
-        return step;
-    }
+ 
     
     
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass) {                
@@ -38,15 +35,15 @@ public class StepBuilder<TData, TStep extends StepBody> {
                 
         if (stepSetup != null)
             stepSetup.accept(stepBuilder);
-        
-        step.addOutcome(newStep.getId(), null);        
+    
+        outcome.setNextStep(newStep.getId());
         
         return stepBuilder;        
     }
     
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, StepBuilder<TData, TNewStep> newStep) {        
-        step.addOutcome(newStep.step.getId(), null);
-        StepBuilder<TData, TNewStep> stepBuilder = new StepBuilder<>(dataClass, stepClass, workflowBuilder, newStep.step);
+        outcome.setNextStep(newStep.getStep().getId());
+        StepBuilder<TData, TNewStep> stepBuilder = new StepBuilder<>(dataClass, stepClass, workflowBuilder, newStep.getStep());
         
         return stepBuilder;        
     }
@@ -55,19 +52,9 @@ public class StepBuilder<TData, TStep extends StepBody> {
         WorkflowStepInline newStep = new WorkflowStepInline(body);        
         workflowBuilder.addStep(newStep);        
         StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new StepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);        
-        step.addOutcome(newStep.getId(), null);        
+        outcome.setNextStep(newStep.getId());
         
         return stepBuilder;        
     }
-    
-    public StepOutcomeBuilder<TData> when(Object value) {
-        StepOutcome result = new StepOutcome();
-        result.setValue(value);
-        step.addOutcome(result);
-        StepOutcomeBuilder<TData> outcomeBuilder = new StepOutcomeBuilder<>(dataClass, workflowBuilder, result);
-        
-        return outcomeBuilder;
-    }
-    
     
 }

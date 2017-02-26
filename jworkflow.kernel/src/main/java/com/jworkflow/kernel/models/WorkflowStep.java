@@ -1,5 +1,6 @@
 package com.jworkflow.kernel.models;
 
+import com.jworkflow.kernel.interfaces.StepBody;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,10 @@ public class WorkflowStep {
 
     public WorkflowStep() {
         this.outcomes = new ArrayList<>();
+    }
+    
+    public StepBody constructBody() throws InstantiationException, IllegalAccessException {
+        return (StepBody)bodyType.newInstance();
     }
 
     /**
@@ -68,4 +73,16 @@ public class WorkflowStep {
     public void setOutcomes(List<StepOutcome> outcomes) {
         this.outcomes = outcomes;
     }
+    
+    public void addOutcome(int nextStep, Object value) {
+        StepOutcome outcome = new StepOutcome();
+        outcome.setNextStep(nextStep);
+        outcome.setValue(value);        
+        outcomes.add(outcome);
+    }
+    
+    public void addOutcome(StepOutcome outcome) {
+        outcomes.add(outcome);
+    }
+    
 }
