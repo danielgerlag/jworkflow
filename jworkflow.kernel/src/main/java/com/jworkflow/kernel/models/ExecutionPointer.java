@@ -3,6 +3,7 @@ package com.jworkflow.kernel.models;
 import java.util.Date;
 
 public class ExecutionPointer {
+    private String id;
     private int stepId;
     private boolean active;
     private Date sleepUntil;
@@ -182,6 +183,20 @@ public class ExecutionPointer {
      */
     public void setPathTerminator(boolean pathTerminator) {
         this.pathTerminator = pathTerminator;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
     
     

@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -71,6 +72,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                         for (StepOutcome outcome : outcomes) {
                             
                             ExecutionPointer newPointer = new ExecutionPointer();
+                            newPointer.setId(UUID.randomUUID().toString());
                             newPointer.setActive(true);
                             newPointer.setStepId(outcome.getNextStep());
                             newPointer.setConcurrentFork(forkCounter * pointer.getConcurrentFork());
