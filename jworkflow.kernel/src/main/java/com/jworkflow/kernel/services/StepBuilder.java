@@ -1,12 +1,9 @@
 package com.jworkflow.kernel.services;
 import com.jworkflow.kernel.models.*;
 import com.jworkflow.kernel.interfaces.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 
 public class StepBuilder<TData, TStep extends StepBody> {
-     
+    
     
     private final WorkflowBuilder workflowBuilder;
     private final WorkflowStep step;
@@ -23,14 +20,20 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return step;
     }
     
+    public StepBuilder<TData, TStep> name(String name) {
+        step.setName(name);
+        return this;
+    }
+    
     
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass) {                
         return then(stepClass, x -> {});
     }
     
-    public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, Consumer<StepBuilder<TData, TNewStep>> stepSetup) {                
+    public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, StepBuilderConsumer stepSetup) {
         WorkflowStep newStep = new WorkflowStep();
-        newStep.setBodyType(stepClass);        
+        newStep.setBodyType(stepClass); 
+        newStep.setName(stepClass.getName());
         
         workflowBuilder.addStep(newStep);
         
@@ -51,7 +54,7 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return stepBuilder;        
     }
     
-    public StepBuilder<TData, WorkflowStepInline.InlineBody> then(Function<StepExecutionContext, ExecutionResult> body) {                
+    public StepBuilder<TData, WorkflowStepInline.InlineBody> then(StepExecutionConsumer body) {                
         WorkflowStepInline newStep = new WorkflowStepInline(body);        
         workflowBuilder.addStep(newStep);        
         StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new StepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);        

@@ -4,5 +4,6 @@ public interface WorkflowHost {
     String startWorkflow(String workflowId, int version, Object data) throws Exception;
     void start();
     void stop();
+    void registerWorkflow(Workflow workflow) throws Exception;
     
 }

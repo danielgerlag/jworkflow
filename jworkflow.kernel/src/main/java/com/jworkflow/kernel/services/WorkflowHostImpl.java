@@ -1,9 +1,7 @@
 package com.jworkflow.kernel.services;
 
-import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.jworkflow.kernel.interfaces.*;
 import java.util.UUID;
@@ -102,6 +100,11 @@ public class WorkflowHostImpl implements WorkflowHost {
             worker.cancel(false);
         });
         workerFutures.clear();
+    }
+
+    @Override
+    public void registerWorkflow(Workflow workflow) throws Exception {
+        registry.registerWorkflow(workflow);
     }
     
 }

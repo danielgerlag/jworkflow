@@ -23,11 +23,11 @@ public class HelloWorkflow implements Workflow {
 
     @Override
     public void build(TypedWorkflowBuilder builder) {
+        
         builder.StartsWith(Hello.class)
                 .then(context -> { 
-                    System.out.println("Middle step");
                     return ExecutionResult.next(); 
-                })
+                })                
                 .then(Goodbye.class);
         
     }

@@ -34,7 +34,8 @@ public class TypedWorkflowBuilder<TData> extends WorkflowBuilder {
     
     public <TStep extends StepBody> StepBuilder<TData, TStep> StartsWith(Class<TStep> stepClass, Consumer<StepBuilder<TData, TStep>> stepSetup) {                
         WorkflowStep step = new WorkflowStep();
-        step.setBodyType(stepClass);        
+        step.setBodyType(stepClass);     
+        step.setName(stepClass.getName());
         StepBuilder<TData, TStep> stepBuilder = new StepBuilder<>(dataType, stepClass, this, step);
                 
         if (stepSetup != null)

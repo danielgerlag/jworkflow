@@ -28,6 +28,7 @@ public class StepOutcomeBuilder<TData> {
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, Consumer<StepBuilder<TData, TNewStep>> stepSetup) {                
         WorkflowStep newStep = new WorkflowStep();
         newStep.setBodyType(stepClass);        
+        newStep.setName(stepClass.getName());
         
         workflowBuilder.addStep(newStep);
         
