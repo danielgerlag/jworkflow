@@ -21,26 +21,29 @@ import java.util.logging.Logger;
 public class WorkflowHostImpl implements WorkflowHost {
     
     private boolean active;
-    private final PersistenceProvider persistenceProvider;    
+    private final PersistenceProvider persistenceProvider;
+    private final QueueProvider queueProvider;
+    private final LockProvider lockProvider;
     private final WorkflowRegistry registry;
-    private final List<WorkerThread> threadPool;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    
-    //private final Provider<WorkflowThread> workflowThreadProvider;
-    //private final Provider<PollThread> pollThreadProvider;
+    private final List<ScheduledFuture> workerFutures;
+    private final ScheduledExecutorService scheduler;
     private final Injector injector;
     
     private ScheduledFuture pollFuture;
     
     @Inject
-    public WorkflowHostImpl(PersistenceProvider persistenceProvider, WorkflowRegistry registry, Injector injector) {
-        this.persistenceProvider = persistenceProvider;        
-        this.registry = registry;
-        //this.workflowThreadProvider = workflowThreadProvider;
-        //this.pollThreadProvider = pollThreadProvider;
+    public WorkflowHostImpl(PersistenceProvider persistenceProvider, QueueProvider queueProvider, LockProvider lockProvider, WorkflowRegistry registry, Injector injector) {
+        
+        Runtime runtime = Runtime.getRuntime();
+        
+        this.persistenceProvider = persistenceProvider;
+        this.queueProvider = queueProvider;
+        this.lockProvider = lockProvider;
+        this.registry = registry;        
         this.injector = injector;
+        this.scheduler = Executors.newScheduledThreadPool(runtime.availableProcessors());
         active = false;
-        threadPool = new ArrayList<>();        
+        workerFutures = new ArrayList<>();        
     }
     
 
@@ -77,22 +80,17 @@ public class WorkflowHostImpl implements WorkflowHost {
         wf.getExecutionPointers().add(ep);
         String id = persistenceProvider.createNewWorkflow(wf);
         
+        queueProvider.queueForProcessing(id);
+        
         return id;
     }
 
     @Override
     public void start() {
-        Runtime runtime = Runtime.getRuntime();
-        
         active = true;
-        
-        for (int i = 0; i < runtime.availableProcessors(); i++) {
-            WorkflowThread worker = injector.getInstance(WorkflowThread.class);  //workflowThreadProvider.get();
-            Thread thread = new Thread(worker);
-            threadPool.add(worker);
-            thread.start();
-        }
-        PollThread poller = injector.getInstance(PollThread.class); //pollThreadProvider.get();
+        WorkflowThread worker = injector.getInstance(WorkflowThread.class);            
+        workerFutures.add(scheduler.scheduleAtFixedRate(worker, 100, 100, TimeUnit.MILLISECONDS));
+        PollThread poller = injector.getInstance(PollThread.class);
         pollFuture = scheduler.scheduleAtFixedRate(poller, 10, 10, TimeUnit.SECONDS);
     }
 
@@ -100,10 +98,10 @@ public class WorkflowHostImpl implements WorkflowHost {
     public void stop() {
         active = false;
         pollFuture.cancel(true);
-        threadPool.forEach((worker) -> {
-            worker.setActive(false);
+        workerFutures.forEach((worker) -> {
+            worker.cancel(false);
         });
-        threadPool.clear();
+        workerFutures.clear();
     }
     
 }

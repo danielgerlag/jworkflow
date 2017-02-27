@@ -5,6 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.interfaces.WorkflowRegistry;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {        
@@ -24,7 +25,10 @@ public class Main {
         System.out.println("started wf " + id);
         
         
-        System.console().readLine();
+        Scanner scanner = new Scanner(System.in);
+        scanner.nextLine();        
+        
+        System.out.println("shutting down...");
         host.stop();
                         
         

@@ -1,4 +1,5 @@
 package com.jworkflow.kernel.services;
+import com.google.inject.Singleton;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.*;
 import java.util.ArrayList;
@@ -6,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Singleton
 public class MemoryPersistenceProvider implements PersistenceProvider {
     
     
@@ -16,20 +18,20 @@ public class MemoryPersistenceProvider implements PersistenceProvider {
     }
 
     @Override
-    public String createNewWorkflow(WorkflowInstance workflow) {        
+    public synchronized String createNewWorkflow(WorkflowInstance workflow) {        
         workflow.setId(UUID.randomUUID().toString());
         workflows.add(workflow);
         return workflow.getId();        
     }
 
     @Override
-    public void persistWorkflow(WorkflowInstance workflow) {        
+    public synchronized void persistWorkflow(WorkflowInstance workflow) {        
         workflows.removeIf(x -> (x.getId() == null ? workflow.getId() == null : x.getId().equals(workflow.getId())));
         workflows.add(workflow);
     }
 
     @Override
-    public Iterable<String> getRunnableInstances() {
+    public synchronized Iterable<String> getRunnableInstances() {
         ArrayList<String> result = new ArrayList<>();
         workflows.stream().filter(x -> x.getStatus() == WorkflowStatus.RUNNABLE).forEach(item -> {
             result.add(item.getId());
@@ -38,7 +40,7 @@ public class MemoryPersistenceProvider implements PersistenceProvider {
     }
 
     @Override
-    public WorkflowInstance getWorkflowInstance(String id) {
+    public synchronized WorkflowInstance getWorkflowInstance(String id) {
         Optional<WorkflowInstance> result = workflows.stream().filter(x -> (x.getId() == null ? id == null : x.getId().equals(id))).findFirst();
         if (result.isPresent())
             return result.get();

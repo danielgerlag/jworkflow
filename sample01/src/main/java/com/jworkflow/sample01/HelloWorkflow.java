@@ -1,6 +1,7 @@
 package com.jworkflow.sample01;
 
 import com.jworkflow.kernel.interfaces.*;
+import com.jworkflow.kernel.models.ExecutionResult;
 import com.jworkflow.kernel.services.*;
 
 public class HelloWorkflow implements Workflow {
@@ -23,6 +24,10 @@ public class HelloWorkflow implements Workflow {
     @Override
     public void build(TypedWorkflowBuilder builder) {
         builder.StartsWith(Hello.class)
+                .then(context -> { 
+                    System.out.println("Middle step");
+                    return ExecutionResult.next(); 
+                })
                 .then(Goodbye.class);
         
     }

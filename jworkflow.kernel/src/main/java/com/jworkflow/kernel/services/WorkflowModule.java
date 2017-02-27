@@ -2,7 +2,6 @@ package com.jworkflow.kernel.services;
 
 import com.google.inject.AbstractModule;
 import com.jworkflow.kernel.interfaces.*;
-import java.util.logging.Logger;
 
 public class WorkflowModule extends AbstractModule {
   

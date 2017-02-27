@@ -1,18 +1,30 @@
 package com.jworkflow.kernel.services;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+@Singleton
 public class WorkflowRegistryImpl implements WorkflowRegistry{
-    
-    class RegistryKey {
+        
+    class RegistryEntry {
         private final String id;
         private final int version;
+        private final WorkflowDefinition definition;
         
-        public RegistryKey(String id, int version) {
+        public RegistryEntry(String id, int version, WorkflowDefinition definition) {
             this.id = id;
             this.version = version;
+            this.definition = definition;
         }
 
         public String getId() {
@@ -23,33 +35,50 @@ public class WorkflowRegistryImpl implements WorkflowRegistry{
             return version;
         }
         
+        public WorkflowDefinition getDefinition() {
+            return definition;
+        }
+                
+        
     }
     
         
-    private final Map<RegistryKey, WorkflowDefinition> registry;
+    private final List<RegistryEntry> registry;
+    private final Logger logger;
     
-    public WorkflowRegistryImpl() {
-        this.registry = new HashMap<>();        
+    @Inject
+    public WorkflowRegistryImpl(Logger logger) {
+        this.registry = new ArrayList<>();
+        this.logger = logger;
     }
     
     @Override
     public void registerWorkflow(Workflow workflow) throws Exception {
-        RegistryKey key = new RegistryKey(workflow.getId(), workflow.getVersion());
-        if (registry.containsKey(key))
-            throw new Exception("already registered");
+        
+        //if (registry.containsKey(key))
+        //    throw new Exception("already registered");
         
         WorkflowBuilder baseBuilder = new WorkflowBuilder();
         TypedWorkflowBuilder builder = baseBuilder.UseData(workflow.getDataType());        
         
         workflow.build(builder);
         WorkflowDefinition def = builder.build(workflow.getId(), workflow.getVersion());
-        registry.put(key, def);
+        
+        RegistryEntry entry = new RegistryEntry(workflow.getId(), workflow.getVersion(), def);
+        
+        registry.add(entry);
+        
+        logger.log(Level.INFO, String.format("Registered workflow %s %s", workflow.getId(), workflow.getVersion()));
     }
 
     @Override
     public WorkflowDefinition getDefinition(String workflowId, int version) {
-        RegistryKey key = new RegistryKey(workflowId, version);
-        return registry.get(key);
+        for (RegistryEntry item : registry) {
+            if (item.getId().equals(workflowId) && (item.version == version))
+                return item.getDefinition();
+        }        
+        
+        return null;
     }
     
     

@@ -4,14 +4,11 @@ import com.google.inject.Inject;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.*;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import sun.util.logging.resources.logging;
 
 public class WorkflowExecutorImpl implements WorkflowExecutor {
 
@@ -30,21 +27,22 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     }
     
     @Override
-    public void execute(String workflowId) {
+    public boolean execute(String workflowId) {
         
         WorkflowInstance workflow = persistenceStore.getWorkflowInstance(workflowId);
         if (workflow.getStatus() != WorkflowStatus.RUNNABLE)
-            return;
+            return false;
         
-        Stream<ExecutionPointer> exePointers = workflow.getExecutionPointers().stream().filter(x -> x.isActive());
+        ExecutionPointer[] exePointers = workflow.getExecutionPointers().stream().filter(x -> x.isActive()).toArray(ExecutionPointer[]::new);
+        
         WorkflowDefinition def = registry.getDefinition(workflow.getWorkflowDefintionId(), workflow.getVersion());
         
         if (def == null) {
             logger.log(Level.SEVERE, "Workflow not registred");
-            return;
+            return false;
         }
-        
-        exePointers.forEach((ExecutionPointer pointer) -> {
+                
+        for (ExecutionPointer pointer: exePointers) {
             
             Optional<WorkflowStep> step = def.getSteps().stream().filter(x -> x.getId() == pointer.getStepId()).findFirst();
             
@@ -73,9 +71,9 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                         pointer.setActive(false);
                         pointer.setEndTime(new Date());
                         int forkCounter = 1;
-                        boolean noOutcome = true;
+                        boolean noOutcome = true;                        
                         
-                        StepOutcome[] outcomes = (StepOutcome[])step.get().getOutcomes().stream().filter(x -> x.getValue() == result.getOutcomeValue()).toArray();
+                        StepOutcome[] outcomes = step.get().getOutcomes().stream().filter(x -> x.getValue() == result.getOutcomeValue()).toArray(StepOutcome[]::new);                                                
                         
                         for (StepOutcome outcome : outcomes) {
                             
@@ -110,24 +108,33 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 // throw
             }
             persistenceStore.persistWorkflow(workflow);
-        });
+        }
         
         determineNextExecution(workflow);
         persistenceStore.persistWorkflow(workflow);
+        
+        if (workflow.getNextExecution() == null)
+            return false;
+        
+        long now = new Date().getTime();
+        return ((workflow.getNextExecution() < now) && workflow.getStatus() == WorkflowStatus.RUNNABLE);
     }
     
     private void determineNextExecution(WorkflowInstance workflow) {
         workflow.setNextExecution(null);
         
-        workflow.getExecutionPointers().stream().filter(x -> x.isActive()).forEach(pointer -> {
-            if (pointer.getSleepUntil() != null) {
-                workflow.setNextExecution((long)0);
-                return;
-            }
-            long pointerSleep = pointer.getSleepUntil().getTime();
-            workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
-        });
         
+        for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
+            if (pointer.isActive()) {
+                if ((pointer.getSleepUntil() == null)) {
+                    workflow.setNextExecution((long)0);
+                    return;
+                }
+                long pointerSleep = pointer.getSleepUntil().getTime();
+                workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
+            }            
+        }        
+                
         if (workflow.getNextExecution() == null) {
             int forks = 1;
             int terminals = 0;

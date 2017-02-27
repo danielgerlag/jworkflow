@@ -1,8 +1,10 @@
 package com.jworkflow.kernel.services;
+import com.google.inject.Singleton;
 import com.jworkflow.kernel.interfaces.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class SingleNodeLockProvider implements LockProvider{
     
     private final List<String> locks;

@@ -5,62 +5,49 @@ import com.jworkflow.kernel.interfaces.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class WorkflowThread implements Runnable, WorkerThread {
+public class WorkflowThread implements Runnable {
     
     private final WorkflowExecutor executor;
     private final QueueProvider queueProvider;
     private final LockProvider lockProvider;
     private final Logger logger;
     
-    private boolean active;
-        
     @Inject
     public WorkflowThread(WorkflowExecutor executor, QueueProvider queueProvider, LockProvider lockProvider, Logger logger) {
         this.executor = executor;
         this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;        
-        this.logger = logger;
-        active = true;
+        this.logger = logger;        
     }
 
     @Override
     public void run() {
-        while (active) {
-            try {
-                String workflowId = queueProvider.dequeueForProcessing();
-                if (workflowId != null) {
-                    if (lockProvider.acquireLock(workflowId)) {
-                        try {
-                            executor.execute(workflowId);
-                        }
-                        finally {
-                            lockProvider.releaseLock(workflowId);
-                        }
+        try {
+            String workflowId = queueProvider.dequeueForProcessing();
+            if (workflowId != null) {
+                if (lockProvider.acquireLock(workflowId)) {
+                    boolean requeue = false;
+                    try {
+                        requeue = executor.execute(workflowId);
                     }
-                    else {
-                        logger.log(Level.INFO, String.format("Workflow %s locked", workflowId));
+                    finally {
+                        lockProvider.releaseLock(workflowId);
+                        if (requeue) {
+                            logger.log(Level.INFO, String.format("Requeue workflow %s", workflowId));
+                            queueProvider.queueForProcessing(workflowId);
+                        }
                     }
                 }
                 else {
-                    Thread.sleep(500); //no work
+                    logger.log(Level.INFO, String.format("Workflow %s locked", workflowId));
                 }
             }
-            catch (Exception ex) {
-                logger.log(Level.SEVERE, ex.getMessage());
-            }
+        }
+        catch (Exception ex) {
+
+            logger.log(Level.SEVERE, ex.toString());
         }
     }
-
     
-    @Override
-    public boolean isActive() {
-        return active;
-    }
-
-    
-    @Override
-    public void setActive(boolean active) {
-        this.active = active;
-    }
     
 }
