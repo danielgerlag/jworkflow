@@ -1,5 +1,6 @@
 package com.jworkflow.kernel.services;
 
+import com.google.inject.Inject;
 import com.jworkflow.kernel.interfaces.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +14,7 @@ public class PollThread implements Runnable {
     private final Logger logger;
            
     
+    @Inject
     public PollThread(PersistenceProvider persistence, QueueProvider queueProvider, LockProvider lockProvider, Logger logger) {
         this.persistence = persistence;
         this.queueProvider = queueProvider;

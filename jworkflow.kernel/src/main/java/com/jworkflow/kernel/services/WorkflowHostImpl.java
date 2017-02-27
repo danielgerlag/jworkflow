@@ -1,6 +1,8 @@
 package com.jworkflow.kernel.services;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.jworkflow.kernel.interfaces.*;
@@ -24,15 +26,19 @@ public class WorkflowHostImpl implements WorkflowHost {
     private final List<WorkerThread> threadPool;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
-    private final Provider<WorkflowThread> workflowThreadProvider;
-    private final Provider<PollThread> pollThreadProvider;
+    //private final Provider<WorkflowThread> workflowThreadProvider;
+    //private final Provider<PollThread> pollThreadProvider;
+    private final Injector injector;
+    
     private ScheduledFuture pollFuture;
     
-    public WorkflowHostImpl(PersistenceProvider persistenceProvider, WorkflowRegistry registry, Provider<WorkflowThread> workflowThreadProvider, Provider<PollThread> pollThreadProvider) {
+    @Inject
+    public WorkflowHostImpl(PersistenceProvider persistenceProvider, WorkflowRegistry registry, Injector injector) {
         this.persistenceProvider = persistenceProvider;        
         this.registry = registry;
-        this.workflowThreadProvider = workflowThreadProvider;
-        this.pollThreadProvider = pollThreadProvider;
+        //this.workflowThreadProvider = workflowThreadProvider;
+        //this.pollThreadProvider = pollThreadProvider;
+        this.injector = injector;
         active = false;
         threadPool = new ArrayList<>();        
     }
@@ -81,12 +87,12 @@ public class WorkflowHostImpl implements WorkflowHost {
         active = true;
         
         for (int i = 0; i < runtime.availableProcessors(); i++) {
-            WorkflowThread worker = workflowThreadProvider.get();
+            WorkflowThread worker = injector.getInstance(WorkflowThread.class);  //workflowThreadProvider.get();
             Thread thread = new Thread(worker);
             threadPool.add(worker);
             thread.start();
         }
-        PollThread poller = pollThreadProvider.get();
+        PollThread poller = injector.getInstance(PollThread.class); //pollThreadProvider.get();
         pollFuture = scheduler.scheduleAtFixedRate(poller, 10, 10, TimeUnit.SECONDS);
     }
 

@@ -1,5 +1,6 @@
 package com.jworkflow.kernel.services;
 
+import com.google.inject.Inject;
 import com.jworkflow.kernel.interfaces.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,7 +14,7 @@ public class WorkflowThread implements Runnable, WorkerThread {
     
     private boolean active;
         
-    
+    @Inject
     public WorkflowThread(WorkflowExecutor executor, QueueProvider queueProvider, LockProvider lockProvider, Logger logger) {
         this.executor = executor;
         this.queueProvider = queueProvider;

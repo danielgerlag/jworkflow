@@ -12,8 +12,8 @@ public class WorkflowModule extends AbstractModule {
       bind(WorkflowExecutor.class).to(WorkflowExecutorImpl.class);
       bind(WorkflowRegistry.class).to(WorkflowRegistryImpl.class);
       
-      bind(PollThread.class).to(PollThread.class);
-      bind(WorkflowThread.class).to(WorkflowThread.class);
+      //bind(PollThread.class).to(PollThread.class);
+      //bind(WorkflowThread.class).to(WorkflowThread.class);
       
       //
       bind(PersistenceProvider.class).to(MemoryPersistenceProvider.class);
