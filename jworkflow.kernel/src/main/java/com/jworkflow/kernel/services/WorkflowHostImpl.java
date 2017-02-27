@@ -1,33 +1,47 @@
 package com.jworkflow.kernel.services;
 
+import com.google.inject.Guice;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.jworkflow.kernel.interfaces.*;
 import java.util.UUID;
 import com.jworkflow.kernel.models.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 @Singleton
 public class WorkflowHostImpl implements WorkflowHost {
     
-    private boolean shutdown;
-    private final PersistenceProvider persistenceProvider;
-    private final QueueProvider queueProvider;
-    private final LockProvider lockProvider;
+    private boolean active;
+    private final PersistenceProvider persistenceProvider;    
     private final WorkflowRegistry registry;
+    private final List<WorkerThread> threadPool;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
-    public WorkflowHostImpl(PersistenceProvider persistenceProvider, QueueProvider queueProvider, LockProvider lockProvider, WorkflowRegistry registry) {
-        this.persistenceProvider = persistenceProvider;
-        this.queueProvider = queueProvider;
-        this.lockProvider = lockProvider;
+    private final Provider<WorkflowThread> workflowThreadProvider;
+    private final Provider<PollThread> pollThreadProvider;
+    private ScheduledFuture pollFuture;
+    
+    public WorkflowHostImpl(PersistenceProvider persistenceProvider, WorkflowRegistry registry, Provider<WorkflowThread> workflowThreadProvider, Provider<PollThread> pollThreadProvider) {
+        this.persistenceProvider = persistenceProvider;        
         this.registry = registry;
-        shutdown = true;
+        this.workflowThreadProvider = workflowThreadProvider;
+        this.pollThreadProvider = pollThreadProvider;
+        active = false;
+        threadPool = new ArrayList<>();        
     }
     
 
     @Override
     public String startWorkflow(String workflowId, int version, Object data) throws Exception {
         
-        if (shutdown)
+        if (!active)
             throw new Exception("Host is not running");
         
         WorkflowDefinition def = registry.getDefinition(workflowId, version);
@@ -58,6 +72,32 @@ public class WorkflowHostImpl implements WorkflowHost {
         String id = persistenceProvider.createNewWorkflow(wf);
         
         return id;
+    }
+
+    @Override
+    public void start() {
+        Runtime runtime = Runtime.getRuntime();
+        
+        active = true;
+        
+        for (int i = 0; i < runtime.availableProcessors(); i++) {
+            WorkflowThread worker = workflowThreadProvider.get();
+            Thread thread = new Thread(worker);
+            threadPool.add(worker);
+            thread.start();
+        }
+        PollThread poller = pollThreadProvider.get();
+        pollFuture = scheduler.scheduleAtFixedRate(poller, 10, 10, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void stop() {
+        active = false;
+        pollFuture.cancel(true);
+        threadPool.forEach((worker) -> {
+            worker.setActive(false);
+        });
+        threadPool.clear();
     }
     
 }

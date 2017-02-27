@@ -17,16 +17,24 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
 
     
     private final WorkflowRegistry registry;
+    private final PersistenceProvider persistenceStore;
+    private final WorkflowHost host;
     private final Logger logger;
     
     @Inject
-    public WorkflowExecutorImpl(WorkflowRegistry registry, Logger logger) {
+    public WorkflowExecutorImpl(WorkflowRegistry registry, PersistenceProvider persistenceStore, WorkflowHost host, Logger logger) {
         this.registry = registry;
+        this.persistenceStore = persistenceStore;
+        this.host = host;
         this.logger = logger;
     }
     
     @Override
-    public void execute(WorkflowInstance workflow, PersistenceProvider persistenceStore, WorkflowHost host) {
+    public void execute(String workflowId) {
+        
+        WorkflowInstance workflow = persistenceStore.getWorkflowInstance(workflowId);
+        if (workflow.getStatus() != WorkflowStatus.RUNNABLE)
+            return;
         
         Stream<ExecutionPointer> exePointers = workflow.getExecutionPointers().stream().filter(x -> x.isActive());
         WorkflowDefinition def = registry.getDefinition(workflow.getWorkflowDefintionId(), workflow.getVersion());
