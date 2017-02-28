@@ -13,7 +13,7 @@ public class HelloWorkflow implements Workflow {
 
     @Override
     public Class getDataType() {
-        return null;
+        return MyData.class;
     }
 
     @Override

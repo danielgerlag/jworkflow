@@ -9,9 +9,13 @@ public class WorkflowStep {
     private int id;
     private String name;
     private List<StepOutcome> outcomes;
+    private List<DataMapping> inputs;
+    private List<DataMapping> outputs;
 
     public WorkflowStep() {
         this.outcomes = new ArrayList<>();
+        this.inputs = new ArrayList<>();
+        this.outputs = new ArrayList<>();
     }
     
     public StepBody constructBody() throws InstantiationException, IllegalAccessException {
@@ -83,6 +87,34 @@ public class WorkflowStep {
     
     public void addOutcome(StepOutcome outcome) {
         outcomes.add(outcome);
+    }
+
+    /**
+     * @return the inputs
+     */
+    public List<DataMapping> getInputs() {
+        return inputs;
+    }
+
+    /**
+     * @param inputs the inputs to set
+     */
+    public void setInputs(List<DataMapping> inputs) {
+        this.inputs = inputs;
+    }
+
+    /**
+     * @return the outputs
+     */
+    public List<DataMapping> getOutputs() {
+        return outputs;
+    }
+
+    /**
+     * @param outputs the outputs to set
+     */
+    public void setOutputs(List<DataMapping> outputs) {
+        this.outputs = outputs;
     }
     
 }
