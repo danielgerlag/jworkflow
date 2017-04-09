@@ -1,6 +1,7 @@
 package com.jworkflow.kernel.services;
 import com.jworkflow.kernel.models.*;
 import com.jworkflow.kernel.interfaces.*;
+import java.util.List;
 
 public class StepBuilder<TData, TStep extends StepBody> {
     
@@ -72,5 +73,10 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return outcomeBuilder;
     }
     
+    public StepBuilder<TData, TStep> input(StepFieldConsumer<TStep, TData> consumer) {
+        List<StepFieldConsumer> inputs = step.getInputs();        
+        inputs.add(consumer);
+        return this;
+    }
     
 }

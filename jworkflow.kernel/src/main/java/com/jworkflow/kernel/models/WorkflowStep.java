@@ -1,6 +1,7 @@
 package com.jworkflow.kernel.models;
 
 import com.jworkflow.kernel.interfaces.StepBody;
+import com.jworkflow.kernel.interfaces.StepFieldConsumer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +10,8 @@ public class WorkflowStep {
     private int id;
     private String name;
     private List<StepOutcome> outcomes;
-    private List<DataMapping> inputs;
-    private List<DataMapping> outputs;
+    private List<StepFieldConsumer> inputs;
+    private List<InputMapping> outputs;
 
     public WorkflowStep() {
         this.outcomes = new ArrayList<>();
@@ -92,28 +93,28 @@ public class WorkflowStep {
     /**
      * @return the inputs
      */
-    public List<DataMapping> getInputs() {
+    public List<StepFieldConsumer> getInputs() {
         return inputs;
     }
 
     /**
      * @param inputs the inputs to set
      */
-    public void setInputs(List<DataMapping> inputs) {
+    public void setInputs(List<StepFieldConsumer> inputs) {
         this.inputs = inputs;
     }
 
     /**
      * @return the outputs
      */
-    public List<DataMapping> getOutputs() {
+    public List<InputMapping> getOutputs() {
         return outputs;
     }
 
     /**
      * @param outputs the outputs to set
      */
-    public void setOutputs(List<DataMapping> outputs) {
+    public void setOutputs(List<InputMapping> outputs) {
         this.outputs = outputs;
     }
     

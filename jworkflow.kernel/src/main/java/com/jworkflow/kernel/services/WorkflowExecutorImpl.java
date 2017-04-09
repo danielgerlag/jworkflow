@@ -3,6 +3,7 @@ package com.jworkflow.kernel.services;
 import com.google.inject.Inject;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.*;
+import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,6 +57,8 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     StepBody body = (StepBody)step.get().constructBody();
                     
                     //todo: inputs
+                    processInputs(step.get(), body, workflow.getData());
+                    
                     
                     StepExecutionContext context = new StepExecutionContext();
                     context.setWorkflow(workflow);
@@ -117,6 +120,14 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         
         long now = new Date().getTime();
         return ((workflow.getNextExecution() < now) && workflow.getStatus() == WorkflowStatus.RUNNABLE);
+    }
+    
+    private void processInputs(WorkflowStep step, StepBody body, Object data) {
+        
+        for (StepFieldConsumer input: step.getInputs()) {            
+            input.accept(body, data);
+        }
+        
     }
     
     private void determineNextExecution(WorkflowInstance workflow) {
