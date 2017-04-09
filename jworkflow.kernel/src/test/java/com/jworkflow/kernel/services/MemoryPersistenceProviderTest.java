@@ -1,45 +1,13 @@
 package com.jworkflow.kernel.services;
 import com.jworkflow.kernel.interfaces.PersistenceProvider;
-import com.jworkflow.kernel.models.*;
-import static org.junit.Assert.*;
+import com.jworkflow.kernel.services.abstractions.PersistenceProviderTest;
 import org.junit.Test;
 
-public class MemoryPersistenceProviderTest {
+public class MemoryPersistenceProviderTest extends PersistenceProviderTest {
 
-    @Test
-    public void createNewWorkflow() {
-        //arrange
-        PersistenceProvider provider = new MemoryPersistenceProvider();
-        WorkflowInstance wf = new WorkflowInstance();
-        wf.setDescription("wf1");
-        
-        //act
-        String id = provider.createNewWorkflow(wf);
-        
-        //assert        
-        assertNotNull(id);
-        WorkflowInstance wf2 = provider.getWorkflowInstance(id);
-        assertNotNull(wf2);
+    @Override
+    public PersistenceProvider createProvider() {
+        return new MemoryPersistenceProvider();
     }
     
-    @Test
-    public void persistWorkflow() {
-        //arrange
-        PersistenceProvider provider = new MemoryPersistenceProvider();
-        WorkflowInstance wf1 = new WorkflowInstance();
-        wf1.setDescription("wf1");
-        String id = provider.createNewWorkflow(wf1);
-        
-        WorkflowInstance wf2 = new WorkflowInstance();
-        wf2.setId(id);
-        wf2.setDescription("wf2");
-        
-        //act
-        provider.persistWorkflow(wf2);
-        
-        //assert        
-        WorkflowInstance wf3 = provider.getWorkflowInstance(id);
-        assertNotNull(wf3);
-        assertEquals(wf3, wf2);
-    }
 }

@@ -11,7 +11,7 @@ public class WorkflowStep {
     private String name;
     private List<StepOutcome> outcomes;
     private List<StepFieldConsumer> inputs;
-    private List<InputMapping> outputs;
+    private List<StepFieldConsumer> outputs;
 
     public WorkflowStep() {
         this.outcomes = new ArrayList<>();
@@ -107,14 +107,14 @@ public class WorkflowStep {
     /**
      * @return the outputs
      */
-    public List<InputMapping> getOutputs() {
+    public List<StepFieldConsumer> getOutputs() {
         return outputs;
     }
 
     /**
      * @param outputs the outputs to set
      */
-    public void setOutputs(List<InputMapping> outputs) {
+    public void setOutputs(List<StepFieldConsumer> outputs) {
         this.outputs = outputs;
     }
     

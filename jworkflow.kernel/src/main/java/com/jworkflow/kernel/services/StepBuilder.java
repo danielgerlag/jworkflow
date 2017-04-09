@@ -79,4 +79,10 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return this;
     }
     
+    public StepBuilder<TData, TStep> output(StepFieldConsumer<TStep, TData> consumer) {
+        List<StepFieldConsumer> outputs = step.getOutputs();        
+        outputs.add(consumer);
+        return this;
+    }
+    
 }

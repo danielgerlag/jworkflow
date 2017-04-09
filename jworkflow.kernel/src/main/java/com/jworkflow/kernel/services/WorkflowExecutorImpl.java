@@ -68,6 +68,8 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     ExecutionResult result = body.run(context);
                     
                     //todo: outputs
+                    processOutputs(step.get(), body, workflow.getData());
+                    
                     
                     if (result.isProceed()) {
                         pointer.setActive(false);
@@ -122,11 +124,17 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         return ((workflow.getNextExecution() < now) && workflow.getStatus() == WorkflowStatus.RUNNABLE);
     }
     
-    private void processInputs(WorkflowStep step, StepBody body, Object data) {
-        
-        for (StepFieldConsumer input: step.getInputs()) {            
+    private void processInputs(WorkflowStep step, StepBody body, Object data) {        
+        step.getInputs().stream().forEach((input) -> {            
             input.accept(body, data);
-        }
+        });
+        
+    }
+    
+    private void processOutputs(WorkflowStep step, StepBody body, Object data) {        
+        step.getOutputs().stream().forEach((input) -> {            
+            input.accept(body, data);
+        });
         
     }
     
