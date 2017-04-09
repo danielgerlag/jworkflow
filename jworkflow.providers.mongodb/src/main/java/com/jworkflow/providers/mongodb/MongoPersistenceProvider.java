@@ -16,8 +16,9 @@ public class MongoPersistenceProvider implements PersistenceProvider {
 
     MongoOperations mongoOperation;
     
-    public MongoPersistenceProvider(String uri, String db) {
-        
+    //@Inject
+    //public MongoPersistenceProvider(String uri, String db) {
+    public MongoPersistenceProvider() {        
         ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
         mongoOperation = (MongoOperations)ctx.getBean("mongoTemplate");        
     }
