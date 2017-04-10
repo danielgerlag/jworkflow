@@ -2,6 +2,7 @@ package com.jworkflow.kernel.services;
 
 import com.google.inject.Inject;
 import com.jworkflow.kernel.interfaces.*;
+import com.jworkflow.kernel.models.QueueType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +31,7 @@ public class PollThread implements Runnable {
                 try {
                     Iterable<String> runnables = persistence.getRunnableInstances();
                     runnables.forEach(item -> {
-                       queueProvider.queueForProcessing(item);
+                       queueProvider.queueForProcessing(QueueType.WORKFLOW, item);
                     });            
                 }
                 finally {

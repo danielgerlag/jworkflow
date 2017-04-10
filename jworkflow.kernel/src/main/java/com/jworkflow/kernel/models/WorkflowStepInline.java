@@ -1,5 +1,6 @@
 package com.jworkflow.kernel.models;
 
+import com.google.inject.Injector;
 import com.jworkflow.kernel.interfaces.StepBody;
 import java.util.function.Function;
 
@@ -32,7 +33,7 @@ public class WorkflowStepInline extends WorkflowStep {
     }
     
     @Override
-    public StepBody constructBody() throws InstantiationException, IllegalAccessException {
+    public StepBody constructBody(Injector injector) throws InstantiationException, IllegalAccessException {
         return new InlineBody(body);
     }
     

@@ -7,20 +7,36 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Singleton
 public class SingleNodeQueueProvider implements QueueProvider{
         
-    private final ConcurrentLinkedQueue<String> processQueue;
+    private final ConcurrentLinkedQueue<String> workflowQueue;
+    private final ConcurrentLinkedQueue<String> eventQueue;
     
     public SingleNodeQueueProvider() {
-        processQueue = new ConcurrentLinkedQueue<>();
+        workflowQueue = new ConcurrentLinkedQueue<>();
+        eventQueue = new ConcurrentLinkedQueue<>();
     }
 
     @Override
-    public synchronized void queueForProcessing(String id) {
-        processQueue.add(id);
+    public synchronized void queueForProcessing(QueueType type, String id) {        
+        switch (type) {
+            case WORKFLOW:
+                workflowQueue.add(id);
+                break;
+            case EVENT:
+                eventQueue.add(id);
+                break;
+        }        
     }
 
     @Override
-    public synchronized String dequeueForProcessing() {
-        return processQueue.poll();
+    public synchronized String dequeueForProcessing(QueueType type) {
+        switch (type) {
+            case WORKFLOW:
+                return workflowQueue.poll();
+            case EVENT:
+                return eventQueue.poll();
+            default:
+                return null;
+        }         
     }
     
 }

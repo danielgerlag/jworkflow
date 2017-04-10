@@ -2,6 +2,7 @@ package com.jworkflow.kernel.services;
 
 import com.google.inject.Inject;
 import com.jworkflow.kernel.interfaces.*;
+import com.jworkflow.kernel.models.QueueType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,7 +24,7 @@ public class WorkflowThread implements Runnable {
     @Override
     public void run() {
         try {
-            String workflowId = queueProvider.dequeueForProcessing();
+            String workflowId = queueProvider.dequeueForProcessing(QueueType.WORKFLOW);
             if (workflowId != null) {
                 if (lockProvider.acquireLock(workflowId)) {
                     boolean requeue = false;
@@ -34,7 +35,7 @@ public class WorkflowThread implements Runnable {
                         lockProvider.releaseLock(workflowId);
                         if (requeue) {
                             logger.log(Level.INFO, String.format("Requeue workflow %s", workflowId));
-                            queueProvider.queueForProcessing(workflowId);
+                            queueProvider.queueForProcessing(QueueType.WORKFLOW, workflowId);
                         }
                     }
                 }

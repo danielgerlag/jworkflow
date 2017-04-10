@@ -1,6 +1,7 @@
 package com.jworkflow.kernel.services;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.*;
 import java.lang.reflect.Field;
@@ -17,13 +18,15 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     private final PersistenceProvider persistenceStore;
     private final WorkflowHost host;
     private final Logger logger;
+    private final Injector injector;
     
     @Inject
-    public WorkflowExecutorImpl(WorkflowRegistry registry, PersistenceProvider persistenceStore, WorkflowHost host, Logger logger) {
+    public WorkflowExecutorImpl(WorkflowRegistry registry, PersistenceProvider persistenceStore, WorkflowHost host, Logger logger, Injector injector) {
         this.registry = registry;
         this.persistenceStore = persistenceStore;
         this.host = host;
         this.logger = logger;
+        this.injector = injector;
     }
     
     @Override
@@ -54,7 +57,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     
                     logger.log(Level.INFO, String.format("Starting step %s on workflow %s", step.get().getName(), workflow.getId()));
                     
-                    StepBody body = (StepBody)step.get().constructBody();
+                    StepBody body = (StepBody)step.get().constructBody(injector);
                     
                     //todo: inputs
                     processInputs(step.get(), body, workflow.getData());

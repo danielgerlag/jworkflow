@@ -43,12 +43,18 @@ public class WorkflowModule extends AbstractModule {
     public static void setup(Class<? extends PersistenceProvider> persistenceProvider) {
         WorkflowModule module = new WorkflowModule();
         module.setPersistenceProvider(persistenceProvider);        
-        injector = Guice.createInjector(module);        
+        injector = Guice.createInjector(module);
     }
     
     public static WorkflowHost getHost() {
         if (injector != null)
             return injector.getInstance(WorkflowHost.class);        
+        return null;
+    }
+    
+    public static PersistenceProvider getPersistenceProvider() {
+        if (injector != null)
+            return injector.getInstance(PersistenceProvider.class);        
         return null;
     }
 }

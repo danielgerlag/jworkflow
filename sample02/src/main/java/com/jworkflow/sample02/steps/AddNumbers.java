@@ -1,4 +1,4 @@
-package com.jworkflow.sample02;
+package com.jworkflow.sample02.steps;
 
 import com.jworkflow.kernel.interfaces.StepBody;
 import com.jworkflow.kernel.models.*;
@@ -12,7 +12,6 @@ public class AddNumbers implements StepBody {
     @Override
     public ExecutionResult run(StepExecutionContext context) {
         Answer = Number1 + Number2;
-        System.out.println("answer is " + Answer);
         return ExecutionResult.next();
     }
     

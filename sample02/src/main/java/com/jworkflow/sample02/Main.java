@@ -8,17 +8,17 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {        
                                 
-        WorkflowModule.setup(); //(MongoPersistenceProvider.class);
+        WorkflowModule.setup(MongoPersistenceProvider.class);
         WorkflowHost host = WorkflowModule.getHost();
                 
-        host.registerWorkflow(new DataWorkflow());
+        host.registerWorkflow(DataWorkflow.class);
         
         host.start();
         MyData data = new MyData();
         data.Value1 = 2;
         data.Value2 = 3;
         
-        String id = host.startWorkflow("hello", 1, data);
+        String id = host.startWorkflow("data-workflow", 1, data);
         System.out.println("started wf " + id);
         
         

@@ -8,10 +8,10 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {        
                                 
-        WorkflowModule.setup(MongoPersistenceProvider.class);
+        WorkflowModule.setup(); //(MongoPersistenceProvider.class);
         WorkflowHost host = WorkflowModule.getHost();
                 
-        host.registerWorkflow(new HelloWorkflow());
+        host.registerWorkflow(HelloWorkflow.class);
         
         host.start();
         

@@ -1,5 +1,6 @@
 package com.jworkflow.kernel.models;
 
+import com.google.inject.Injector;
 import com.jworkflow.kernel.interfaces.StepBody;
 import com.jworkflow.kernel.interfaces.StepFieldConsumer;
 import java.util.ArrayList;
@@ -19,8 +20,9 @@ public class WorkflowStep {
         this.outputs = new ArrayList<>();
     }
     
-    public StepBody constructBody() throws InstantiationException, IllegalAccessException {
-        return (StepBody)bodyType.newInstance();
+    public StepBody constructBody(Injector injector) throws InstantiationException, IllegalAccessException {
+        return (StepBody)injector.getInstance(bodyType);        
+        //return (StepBody)bodyType.newInstance();
     }
 
     /**

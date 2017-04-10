@@ -1,4 +1,4 @@
-package com.jworkflow.sample01;
+package com.jworkflow.sample01.steps;
 
 import com.jworkflow.kernel.interfaces.StepBody;
 import com.jworkflow.kernel.models.*;

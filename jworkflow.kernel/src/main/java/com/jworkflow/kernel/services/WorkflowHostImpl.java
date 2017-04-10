@@ -78,7 +78,7 @@ public class WorkflowHostImpl implements WorkflowHost {
         wf.getExecutionPointers().add(ep);
         String id = persistenceProvider.createNewWorkflow(wf);
         
-        queueProvider.queueForProcessing(id);
+        queueProvider.queueForProcessing(QueueType.WORKFLOW, id);
         
         return id;
     }
@@ -103,7 +103,13 @@ public class WorkflowHostImpl implements WorkflowHost {
     }
 
     @Override
-    public void registerWorkflow(Workflow workflow) throws Exception {
+    public void registerWorkflow(Class<? extends Workflow> workflow) throws Exception {
+        Workflow wf = workflow.newInstance();
+        registry.registerWorkflow(wf);
+    }
+    
+    @Override
+    public void registerWorkflow(Workflow workflow) throws Exception {        
         registry.registerWorkflow(workflow);
     }
     

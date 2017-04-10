@@ -1,5 +1,7 @@
 package com.jworkflow.sample01;
 
+import com.jworkflow.sample01.steps.Goodbye;
+import com.jworkflow.sample01.steps.Hello;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.ExecutionResult;
 import com.jworkflow.kernel.services.*;
