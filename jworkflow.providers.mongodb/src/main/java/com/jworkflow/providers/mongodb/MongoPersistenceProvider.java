@@ -1,6 +1,8 @@
 package com.jworkflow.providers.mongodb;
 
 import com.jworkflow.kernel.interfaces.PersistenceProvider;
+import com.jworkflow.kernel.models.Event;
+import com.jworkflow.kernel.models.EventSubscription;
 import com.jworkflow.kernel.models.WorkflowInstance;
 import com.jworkflow.kernel.models.WorkflowStatus;
 import java.util.Arrays;
@@ -51,6 +53,52 @@ public class MongoPersistenceProvider implements PersistenceProvider {
     @Override
     public WorkflowInstance getWorkflowInstance(String id) {
         return mongoOperation.findById(id, WorkflowInstance.class);
+    }
+
+    @Override
+    public String createEventSubscription(EventSubscription subscription) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Iterable<EventSubscription> getSubcriptions(String eventName, String eventKey, Date asOf) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void terminateSubscription(String eventSubscriptionId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String createEvent(Event newEvent) {
+        mongoOperation.insert(newEvent);
+        return newEvent.id;
+    }
+
+    @Override
+    public Event getEvent(String id) {
+        return mongoOperation.findById(id, Event.class);
+    }
+
+    @Override
+    public Iterable<String> getRunnableEvents() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Iterable<String> getEvents(String eventName, String eventKey, Date asOf) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void markEventProcessed(String id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void markEventUnprocessed(String id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

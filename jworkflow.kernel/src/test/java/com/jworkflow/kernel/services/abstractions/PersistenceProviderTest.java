@@ -1,6 +1,7 @@
 package com.jworkflow.kernel.services.abstractions;
 
 import com.jworkflow.kernel.interfaces.PersistenceProvider;
+import com.jworkflow.kernel.models.Event;
 import com.jworkflow.kernel.models.WorkflowInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,4 +48,28 @@ public abstract class PersistenceProviderTest {
         assertEquals(wf3, wf2);
     }
     
+    @Test
+    public void createEvent() {
+        //arrange
+        PersistenceProvider provider = createProvider();
+        Event evt = new Event();
+        evt.eventName = "test";
+        evt.eventKey = "1";
+        evt.eventData = makeTestData();
+                
+        //act
+        String id = provider.createEvent(evt);
+        
+        //assert        
+        assertNotNull(id);
+        Event evt2 = provider.getEvent(id);
+        assertNotNull(evt2);
+    }
+    
+    private TestDataClass makeTestData() {
+        TestDataClass result = new TestDataClass();
+        result.Value1 = 2;
+        result.Value2 = 3;
+        return result;
+    }
 }

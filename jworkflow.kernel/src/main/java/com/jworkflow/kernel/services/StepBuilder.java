@@ -1,6 +1,7 @@
 package com.jworkflow.kernel.services;
 import com.jworkflow.kernel.models.*;
 import com.jworkflow.kernel.interfaces.*;
+import java.util.Date;
 import java.util.List;
 
 public class StepBuilder<TData, TStep extends StepBody> {
@@ -85,4 +86,8 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return this;
     }
     
+    public StepBuilder<TData, TStep> onError(ErrorBehavior behavior) {
+        
+        return this;
+    }
 }
