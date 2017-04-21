@@ -36,7 +36,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         if (workflow.getStatus() != WorkflowStatus.RUNNABLE)
             return false;
         
-        ExecutionPointer[] exePointers = workflow.getExecutionPointers().stream().filter(x -> x.isActive()).toArray(ExecutionPointer[]::new);
+        ExecutionPointer[] exePointers = workflow.getExecutionPointers().stream().filter(x -> x.active).toArray(ExecutionPointer[]::new);
         
         WorkflowDefinition def = registry.getDefinition(workflow.getWorkflowDefintionId(), workflow.getVersion());
         
@@ -47,13 +47,17 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 
         for (ExecutionPointer pointer: exePointers) {
             
-            Optional<WorkflowStep> step = def.getSteps().stream().filter(x -> x.getId() == pointer.getStepId()).findFirst();
+            Optional<WorkflowStep> step = def.getSteps().stream().filter(x -> x.getId() == pointer.stepId).findFirst();
             
             if (step.isPresent()) {
                 
                 try {
-                    if (pointer.getStartTime() == null)
-                        pointer.setStartTime(new Date());
+                    
+                    if (step.get().initForExecution(host, persistenceStore, def, workflow, pointer) == ExecutionPipelineResult.DEFER)
+                        continue;
+                    
+                    if (pointer.startTime == null)
+                        pointer.startTime = new Date();
                     
                     logger.log(Level.INFO, String.format("Starting step %s on workflow %s", step.get().getName(), workflow.getId()));
                     
@@ -61,49 +65,21 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     
                     //todo: inputs
                     processInputs(step.get(), body, workflow.getData());
-                    
-                    
+                                        
                     StepExecutionContext context = new StepExecutionContext();
                     context.setWorkflow(workflow);
                     context.setStep(step.get());
-                    context.setPersistenceData(pointer.getPersistenceData());
+                    context.setPersistenceData(pointer.persistenceData);
+                    
+                    if (step.get().beforeExecute(host, persistenceStore, context, pointer, body) == ExecutionPipelineResult.DEFER)
+                        continue;
                     
                     ExecutionResult result = body.run(context);
                     
-                    //todo: outputs
                     processOutputs(step.get(), body, workflow.getData());
-                    
-                    
-                    if (result.isProceed()) {
-                        pointer.setActive(false);
-                        pointer.setEndTime(new Date());
-                        int forkCounter = 1;
-                        boolean noOutcome = true;                        
-                        
-                        StepOutcome[] outcomes = step.get().getOutcomes().stream().filter(x -> x.getValue() == result.getOutcomeValue()).toArray(StepOutcome[]::new);                                                
-                        
-                        for (StepOutcome outcome : outcomes) {
+                    processExecutionResult(result, pointer, step, workflow);
                             
-                            ExecutionPointer newPointer = new ExecutionPointer();
-                            newPointer.setId(UUID.randomUUID().toString());
-                            newPointer.setActive(true);
-                            newPointer.setStepId(outcome.getNextStep());
-                            newPointer.setConcurrentFork(forkCounter * pointer.getConcurrentFork());
-                            workflow.getExecutionPointers().add(newPointer);
-                            noOutcome = false;
-                            forkCounter++;
-                        }
-                                
-                        pointer.setPathTerminator(noOutcome);
-                                                
-                        //pointer.
-                    }
-                    else {  //no proceed
-                        pointer.setPersistenceData(result.getPersistenceData());
-                        //todo: sleeps
-                    }
-                            
-                    
+                    step.get().afterExecute(host, persistenceStore, context, result, pointer);
                 
                 } catch (Exception ex) {
                     Logger.getLogger(WorkflowExecutorImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -126,6 +102,37 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         long now = new Date().getTime();
         return ((workflow.getNextExecution() < now) && workflow.getStatus() == WorkflowStatus.RUNNABLE);
     }
+
+    private void processExecutionResult(ExecutionResult result, ExecutionPointer pointer, Optional<WorkflowStep> step, WorkflowInstance workflow) {
+        if (result.isProceed()) {
+            pointer.active = false;
+            pointer.endTime = new Date();
+            int forkCounter = 1;
+            boolean noOutcome = true;
+            
+            StepOutcome[] outcomes = step.get().getOutcomes().stream().filter(x -> x.getValue() == result.getOutcomeValue()).toArray(StepOutcome[]::new);
+            
+            for (StepOutcome outcome : outcomes) {
+                
+                ExecutionPointer newPointer = new ExecutionPointer();
+                newPointer.id = UUID.randomUUID().toString();
+                newPointer.active = true;
+                newPointer.stepId = outcome.getNextStep();
+                newPointer.concurrentFork = (forkCounter * pointer.concurrentFork);
+                workflow.getExecutionPointers().add(newPointer);
+                noOutcome = false;
+                forkCounter++;
+            }
+            
+            pointer.pathTerminator = noOutcome;
+            
+            //pointer.
+        }
+        else {  //no proceed
+            pointer.persistenceData = result.getPersistenceData();
+            //todo: sleeps
+        }
+    }
     
     private void processInputs(WorkflowStep step, StepBody body, Object data) {        
         step.getInputs().stream().forEach((input) -> {            
@@ -146,12 +153,12 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         
         
         for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
-            if (pointer.isActive()) {
-                if ((pointer.getSleepUntil() == null)) {
+            if (pointer.active) {
+                if ((pointer.sleepUntil== null)) {
                     workflow.setNextExecution((long)0);
                     return;
                 }
-                long pointerSleep = pointer.getSleepUntil().getTime();
+                long pointerSleep = pointer.sleepUntil.getTime();
                 workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
             }            
         }        
@@ -161,8 +168,8 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
             int terminals = 0;
             
             for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
-                forks = Math.max(pointer.getConcurrentFork(), forks);
-                if (pointer.isPathTerminator())
+                forks = Math.max(pointer.concurrentFork, forks);
+                if (pointer.pathTerminator)
                     terminals++;
                 
                 if (forks <= terminals) {

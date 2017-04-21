@@ -9,10 +9,12 @@ import com.jworkflow.kernel.models.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Singleton
@@ -26,11 +28,12 @@ public class WorkflowHostImpl implements WorkflowHost {
     private final List<ScheduledFuture> workerFutures;
     private final ScheduledExecutorService scheduler;
     private final Injector injector;
+    private final Logger logger;
     
     private ScheduledFuture pollFuture;
     
     @Inject
-    public WorkflowHostImpl(PersistenceProvider persistenceProvider, QueueProvider queueProvider, LockProvider lockProvider, WorkflowRegistry registry, Injector injector) {
+    public WorkflowHostImpl(PersistenceProvider persistenceProvider, QueueProvider queueProvider, LockProvider lockProvider, WorkflowRegistry registry, Injector injector, Logger logger) {
         
         Runtime runtime = Runtime.getRuntime();
         
@@ -39,6 +42,7 @@ public class WorkflowHostImpl implements WorkflowHost {
         this.lockProvider = lockProvider;
         this.registry = registry;        
         this.injector = injector;
+        this.logger = logger;
         this.scheduler = Executors.newScheduledThreadPool(runtime.availableProcessors());
         active = false;
         workerFutures = new ArrayList<>();        
@@ -70,10 +74,10 @@ public class WorkflowHostImpl implements WorkflowHost {
         }
 
         ExecutionPointer ep = new ExecutionPointer();
-        ep.setId(UUID.randomUUID().toString());
-        ep.setActive(true);
-        ep.setStepId(def.getInitialStep());
-        ep.setConcurrentFork(1);
+        ep.id = UUID.randomUUID().toString();
+        ep.active = true;
+        ep.stepId = def.getInitialStep();
+        ep.concurrentFork = 1;
         
         wf.getExecutionPointers().add(ep);
         String id = persistenceProvider.createNewWorkflow(wf);
@@ -113,4 +117,92 @@ public class WorkflowHostImpl implements WorkflowHost {
         registry.registerWorkflow(workflow);
     }
     
+    public void subscribeEvent(String workflowId, int stepId, String eventName, String eventKey, Date asOf) {
+        logger.log(Level.INFO, String.format("Subscribing to event %s %s for workflow %s step %s", eventName, eventKey, workflowId, stepId));
+        EventSubscription subscription = new EventSubscription();
+        subscription.workflowId = workflowId;
+        subscription.stepId = stepId;
+        subscription.eventName = eventName;
+        subscription.eventKey = eventKey;
+        subscription.subscribeAsOf = asOf;
+
+        persistenceProvider.createEventSubscription(subscription);
+        Iterable<String> events = persistenceProvider.getEvents(eventName, eventKey, asOf);
+        for (String evt: events) {            
+            persistenceProvider.markEventUnprocessed(evt);
+            Callable queueTask = Executors.callable(() -> {
+                try {
+                    Thread.sleep(500);
+                    queueProvider.queueForProcessing(QueueType.EVENT, evt);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(WorkflowHostImpl.class.getName()).log(Level.SEVERE, null, ex);
+                }               
+            });
+           Executors.newSingleThreadExecutor().submit(queueTask);           
+        }
+    }
+    
+    public void publishEvent(String eventName, String eventKey, Object eventData, Date effectiveDate) throws Exception {
+        if (!active)
+            throw new Exception("Host is not running");
+
+        logger.log(Level.INFO, String.format("Creating event %s %s", eventName, eventName, eventKey));
+        
+        Event evt = new Event();
+
+        //TODO: use utc
+        if (effectiveDate != null)
+            evt.eventTime = effectiveDate;
+        else
+            evt.eventTime = new Date();
+
+        evt.eventData = eventData;
+        evt.eventKey = eventKey;
+        evt.eventName = eventName;
+        evt.isProcessed = false;
+        String eventId = persistenceProvider.createEvent(evt);
+
+        queueProvider.queueForProcessing(QueueType.EVENT, eventId);
+    }
+    
+    public boolean suspendWorkflow(String workflowId) {
+        if (lockProvider.acquireLock(workflowId)) {
+            try {
+                WorkflowInstance wf = persistenceProvider.getWorkflowInstance(workflowId);
+                if (wf.getStatus() == WorkflowStatus.RUNNABLE) {
+                    wf.setStatus(WorkflowStatus.SUSPENDED);
+                    persistenceProvider.persistWorkflow(wf);
+                    return true;
+                }
+                return false;
+            }
+            finally {
+                lockProvider.releaseLock(workflowId);
+            }
+        }
+        return false;
+    }
+    
+    public boolean resumeWorkflow(String workflowId) {
+        if (lockProvider.acquireLock(workflowId)) {
+            boolean requeue = false;
+            try {
+                WorkflowInstance wf = persistenceProvider.getWorkflowInstance(workflowId);
+                if (wf.getStatus() == WorkflowStatus.SUSPENDED) {
+                    wf.setStatus(WorkflowStatus.RUNNABLE);
+                    persistenceProvider.persistWorkflow(wf);
+                    requeue = true;
+                    return true;
+                }
+                return false;
+            }
+            finally {
+                lockProvider.releaseLock(workflowId);
+                if (requeue)
+                    queueProvider.queueForProcessing(QueueType.WORKFLOW, workflowId);
+            }
+        }
+        return false;
+    }
+
 }
