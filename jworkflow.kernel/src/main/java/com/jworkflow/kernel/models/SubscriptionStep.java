@@ -7,11 +7,11 @@ import com.jworkflow.kernel.interfaces.WorkflowHost;
 import java.util.Date;
 import java.util.function.Function;
 
-public class SubscriptionStep extends WorkflowStep {
+public class SubscriptionStep<TData> extends WorkflowStep {
     
-    public Function<Object, String> eventKey;
+    public Function<TData, String> eventKey;
     public String eventName;
-    public Function<Object, Date> effectiveDate;
+    public Function<TData, Date> effectiveDate;
 
     @Override
     public StepBody constructBody(Injector injector) throws InstantiationException, IllegalAccessException {
@@ -23,13 +23,19 @@ public class SubscriptionStep extends WorkflowStep {
     {
         if (!executionPointer.eventPublished)
         {
-            if (eventKey != null)                
-                executionPointer.eventKey = eventKey.apply(workflow.getData());
+            Object dataRaw = workflow.getData();
+            TData data = null;
+            if (dataRaw != null) {
+                data = (TData) dataRaw;                
+            }
+            
+            if (eventKey != null)
+                executionPointer.eventKey = eventKey.apply(data);
 
             Date date = new Date(0);
 
             if (effectiveDate != null)
-                date = effectiveDate.apply(workflow.getData());
+                date = effectiveDate.apply(data);
 
             executionPointer.eventName = eventName;
             executionPointer.active = false;

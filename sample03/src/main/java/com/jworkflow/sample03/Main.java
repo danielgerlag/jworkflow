@@ -1,8 +1,7 @@
-package com.jworkflow.sample02;
+package com.jworkflow.sample03;
 
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.services.WorkflowModule;
-import com.jworkflow.providers.mongodb.MongoPersistenceProvider;
 import java.util.Scanner;
 
 public class Main {
@@ -12,14 +11,14 @@ public class Main {
         //WorkflowModule.setup(MongoPersistenceProvider.class);
         WorkflowHost host = WorkflowModule.getHost();
                 
-        host.registerWorkflow(DataWorkflow.class);
+        host.registerWorkflow(EventsWorkflow.class);
         
         host.start();
         MyData data = new MyData();
-        data.Value1 = 2;
-        data.Value2 = 3;
+        data.value1 = 2;
+        data.value2 = 3;
         
-        String id = host.startWorkflow("data-workflow", 1, data);
+        String id = host.startWorkflow("events-workflow", 1, data);
         System.out.println("started wf " + id);
         
         

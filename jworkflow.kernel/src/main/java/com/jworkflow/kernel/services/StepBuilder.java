@@ -3,6 +3,7 @@ import com.jworkflow.kernel.models.*;
 import com.jworkflow.kernel.interfaces.*;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 public class StepBuilder<TData, TStep extends StepBody> {
     
@@ -84,6 +85,17 @@ public class StepBuilder<TData, TStep extends StepBody> {
         List<StepFieldConsumer> outputs = step.getOutputs();        
         outputs.add(consumer);
         return this;
+    }
+    
+    public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDate) {
+        SubscriptionStep newStep = new SubscriptionStep();
+        newStep.eventName = eventName;
+        newStep.eventKey = eventKey;
+        newStep.effectiveDate = effectiveDate;        
+        workflowBuilder.addStep(newStep);        
+        StepBuilder<TData, SubscriptionStepBody> stepBuilder = new StepBuilder<>(dataClass, SubscriptionStepBody.class, workflowBuilder, newStep);
+        step.addOutcome(newStep.getId(), null);
+        return stepBuilder;        
     }
     
     public StepBuilder<TData, TStep> onError(ErrorBehavior behavior) {
