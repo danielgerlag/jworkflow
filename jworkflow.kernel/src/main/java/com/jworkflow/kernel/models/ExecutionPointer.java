@@ -6,10 +6,10 @@ public class ExecutionPointer {
     public String id;
     public int stepId;
     public boolean active;
-    public Date sleepUntil;
+    public Date sleepUntilUtc;
     public Object persistenceData;
-    public Date startTime;
-    public Date endTime;
+    public Date startTimeUtc;
+    public Date endTimeUtc;
     public String eventName;
     public String eventKey;
     public boolean eventPublished;

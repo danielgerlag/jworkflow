@@ -27,7 +27,7 @@ public class PollThread implements Runnable {
     public void run() {
         logger.log(Level.INFO, "Polling for runnables");
         try {
-            if (lockProvider.acquireLock("poll-runnables")) {
+            if (lockProvider.acquireLock("poll-workflows")) {
                 try {
                     Iterable<String> runnables = persistence.getRunnableInstances();
                     runnables.forEach(item -> {
@@ -35,7 +35,24 @@ public class PollThread implements Runnable {
                     });            
                 }
                 finally {
-                    lockProvider.releaseLock("poll-runnables");
+                    lockProvider.releaseLock("poll-workflows");
+                }
+            }            
+        }
+        catch (Exception ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+        }        
+        
+        try {
+            if (lockProvider.acquireLock("poll-events")) {
+                try {
+                    Iterable<String> runnables = persistence.getRunnableEvents();
+                    runnables.forEach(item -> {
+                       queueProvider.queueForProcessing(QueueType.EVENT, item);
+                    });            
+                }
+                finally {
+                    lockProvider.releaseLock("poll-events");
                 }
             }            
         }

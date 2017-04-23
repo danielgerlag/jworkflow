@@ -8,6 +8,6 @@ public class EventSubscription {
     public int stepId;
     public String eventName;
     public String eventKey;
-    public Date subscribeAsOf;
+    public Date subscribeAsOfUtc;
 
 }

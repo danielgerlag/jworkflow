@@ -13,8 +13,8 @@ public class WorkflowInstance {
     private Long nextExecution;
     private WorkflowStatus status;
     private Object data;
-    private Date createTime;
-    private Date completeTime;
+    private Date createTimeUtc;
+    private Date completeTimeUtc;
     private List<ExecutionPointer> executionPointers;
     
     public WorkflowInstance() {
@@ -118,29 +118,29 @@ public class WorkflowInstance {
     /**
      * @return the createTime
      */
-    public Date getCreateTime() {
-        return createTime;
+    public Date getCreateTimeUtc() {
+        return createTimeUtc;
     }
 
     /**
      * @param createTime the createTime to set
      */
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+    public void setCreateTimeUtc(Date createTime) {
+        this.createTimeUtc = createTime;
     }
 
     /**
      * @return the completeTime
      */
-    public Date getCompleteTime() {
-        return completeTime;
+    public Date getCompleteTimeUtc() {
+        return completeTimeUtc;
     }
 
     /**
      * @param completeTime the completeTime to set
      */
-    public void setCompleteTime(Date completeTime) {
-        this.completeTime = completeTime;
+    public void setCompleteTimeUtc(Date completeTime) {
+        this.completeTimeUtc = completeTime;
     }
 
     /**

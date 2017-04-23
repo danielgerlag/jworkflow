@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.*;
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,8 +57,8 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     if (step.get().initForExecution(host, persistenceStore, def, workflow, pointer) == ExecutionPipelineResult.DEFER)
                         continue;
                     
-                    if (pointer.startTime == null)
-                        pointer.startTime = new Date();
+                    if (pointer.startTimeUtc == null)
+                        pointer.startTimeUtc = Date.from(Instant.now());
                     
                     logger.log(Level.INFO, String.format("Starting step %s on workflow %s", step.get().getName(), workflow.getId()));
                     
@@ -106,7 +107,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     private void processExecutionResult(ExecutionResult result, ExecutionPointer pointer, Optional<WorkflowStep> step, WorkflowInstance workflow) {
         if (result.isProceed()) {
             pointer.active = false;
-            pointer.endTime = new Date();
+            pointer.endTimeUtc = Date.from(Instant.now());
             int forkCounter = 1;
             boolean noOutcome = true;
             
@@ -154,11 +155,11 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         
         for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
             if (pointer.active) {
-                if ((pointer.sleepUntil== null)) {
+                if ((pointer.sleepUntilUtc == null)) {
                     workflow.setNextExecution((long)0);
                     return;
                 }
-                long pointerSleep = pointer.sleepUntil.getTime();
+                long pointerSleep = pointer.sleepUntilUtc.getTime();
                 workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
             }            
         }        
@@ -174,12 +175,9 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 
                 if (forks <= terminals) {
                     workflow.setStatus(WorkflowStatus.COMPLETE);
-                    workflow.setCompleteTime(new Date());
-                }
-                
-             }
-            
-                        
+                    workflow.setCompleteTimeUtc(Date.from(Instant.now()));
+                }                
+             }          
         }
         
     }

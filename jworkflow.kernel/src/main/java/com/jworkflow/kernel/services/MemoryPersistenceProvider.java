@@ -24,7 +24,7 @@ public class MemoryPersistenceProvider implements PersistenceProvider {
 
     @Override
     public synchronized String createNewWorkflow(WorkflowInstance workflow) {        
-        workflow.setId(UUID.randomUUID().toString());
+        workflow.setId(UUID.randomUUID().toString());        
         workflows.add(workflow);
         return workflow.getId();        
     }
@@ -38,9 +38,13 @@ public class MemoryPersistenceProvider implements PersistenceProvider {
     @Override
     public synchronized Iterable<String> getRunnableInstances() {
         ArrayList<String> result = new ArrayList<>();
-        workflows.stream().filter(x -> x.getStatus() == WorkflowStatus.RUNNABLE).forEach(item -> {
-            result.add(item.getId());
-        });        
+        long now = new Date().getTime();
+        workflows.stream()
+                .filter(x -> x.getStatus() == WorkflowStatus.RUNNABLE && x.getNextExecution() != null)
+                .filter(x -> x.getNextExecution() <= now)
+                .forEach(item -> {
+                    result.add(item.getId());
+                });        
         return result;
     }
 
@@ -55,17 +59,26 @@ public class MemoryPersistenceProvider implements PersistenceProvider {
 
     @Override
     public String createEventSubscription(EventSubscription subscription) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        subscription.id = UUID.randomUUID().toString();
+        subscriptions.add(subscription);
+        return subscription.id;
     }
 
     @Override
     public Iterable<EventSubscription> getSubcriptions(String eventName, String eventKey, Date asOf) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ArrayList<EventSubscription> result = new ArrayList<>();
+        subscriptions.stream()
+                .filter(x -> x.eventName.equals(eventName) && x.eventKey.equals(eventKey))
+                .filter(x -> x.subscribeAsOfUtc.before(asOf))
+                .forEach(item -> {
+                    result.add(item);
+                });        
+        return result;
     }
 
     @Override
     public void terminateSubscription(String eventSubscriptionId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        subscriptions.removeIf(x -> x.id.equals(eventSubscriptionId));
     }
 
     @Override
@@ -86,22 +99,42 @@ public class MemoryPersistenceProvider implements PersistenceProvider {
 
     @Override
     public Iterable<String> getRunnableEvents() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ArrayList<String> result = new ArrayList<>();
+        events.stream()
+                .filter(x -> !x.isProcessed)
+                .filter(x -> x.eventTimeUtc.before(new Date()))
+                .forEach(item -> {
+                    result.add(item.id);
+                });        
+        return result;
     }
 
     @Override
     public Iterable<String> getEvents(String eventName, String eventKey, Date asOf) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ArrayList<String> result = new ArrayList<>();
+        events.stream()
+                .filter(x -> x.eventName.equals(eventName) && x.eventKey.equals(eventKey))
+                .filter(x -> x.eventTimeUtc.after(asOf))
+                .forEach(item -> {
+                    result.add(item.id);
+                });        
+        return result;
     }
 
     @Override
     public void markEventProcessed(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Optional<Event> evt = events.stream().filter(x -> x.id.equals(id)).findFirst();
+        if (evt.isPresent()) {
+            evt.get().isProcessed = true;
+        }
     }
 
     @Override
     public void markEventUnprocessed(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Optional<Event> evt = events.stream().filter(x -> x.id.equals(id)).findFirst();
+        if (evt.isPresent()) {
+            evt.get().isProcessed = false;
+        }
     }
     
 }

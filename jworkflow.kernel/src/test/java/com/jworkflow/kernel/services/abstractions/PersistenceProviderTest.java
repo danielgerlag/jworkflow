@@ -3,6 +3,10 @@ package com.jworkflow.kernel.services.abstractions;
 import com.jworkflow.kernel.interfaces.PersistenceProvider;
 import com.jworkflow.kernel.models.Event;
 import com.jworkflow.kernel.models.WorkflowInstance;
+import com.jworkflow.kernel.models.WorkflowStatus;
+import java.util.Date;
+import java.util.stream.StreamSupport;
+import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
@@ -66,10 +70,39 @@ public abstract class PersistenceProviderTest {
         assertNotNull(evt2);
     }
     
+    @Test
+    public void getRunnableIntances() {
+        //arrange
+        PersistenceProvider provider = createProvider();        
+        String wf1 = provider.createNewWorkflow(makeTestWorkflow("wf1", (long)0, WorkflowStatus.RUNNABLE));
+        String wf2 = provider.createNewWorkflow(makeTestWorkflow("wf2", new Date().getTime(), WorkflowStatus.RUNNABLE));
+        String wf3 = provider.createNewWorkflow(makeTestWorkflow("wf3", (long)0, WorkflowStatus.COMPLETE));
+        String wf4 = provider.createNewWorkflow(makeTestWorkflow("wf4", (long)0, WorkflowStatus.SUSPENDED));
+        String wf5 = provider.createNewWorkflow(makeTestWorkflow("wf5", null, WorkflowStatus.RUNNABLE));
+                        
+        //act
+        Iterable<String> result = provider.getRunnableInstances();
+        
+        //assert                       
+        Assert.assertTrue(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(wf1)));
+        Assert.assertTrue(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(wf2)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(wf3)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(wf4)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(wf5)));
+    }
+    
     private TestDataClass makeTestData() {
         TestDataClass result = new TestDataClass();
         result.Value1 = 2;
         result.Value2 = 3;
         return result;
+    }
+    
+    private WorkflowInstance makeTestWorkflow(String description, Long nextExecution, WorkflowStatus status) {
+        WorkflowInstance wf = new WorkflowInstance();
+        wf.setDescription(description);
+        wf.setNextExecution(nextExecution);
+        wf.setStatus(status);
+        return wf;
     }
 }

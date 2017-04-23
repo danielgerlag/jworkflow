@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import com.jworkflow.kernel.interfaces.*;
 import java.util.UUID;
 import com.jworkflow.kernel.models.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,7 +67,7 @@ public class WorkflowHostImpl implements WorkflowHost {
         wf.setData(data);
         wf.setDescription(def.getDescription());
         wf.setNextExecution((long)0);
-        wf.setCreateTime(new Date());
+        wf.setCreateTimeUtc(Date.from(Instant.now()));
         wf.setStatus(WorkflowStatus.RUNNABLE);
         
         if ((def.getDataType() != null) && (data == null)) {
@@ -90,8 +91,13 @@ public class WorkflowHostImpl implements WorkflowHost {
     @Override
     public void start() {
         active = true;
-        WorkflowThread worker = injector.getInstance(WorkflowThread.class);            
-        workerFutures.add(scheduler.scheduleAtFixedRate(worker, 100, 100, TimeUnit.MILLISECONDS));
+        
+        WorkflowThread wfWorker = injector.getInstance(WorkflowThread.class);            
+        workerFutures.add(scheduler.scheduleAtFixedRate(wfWorker, 100, 100, TimeUnit.MILLISECONDS));
+        
+        EventThread evtWorker = injector.getInstance(EventThread.class);            
+        workerFutures.add(scheduler.scheduleAtFixedRate(evtWorker, 100, 100, TimeUnit.MILLISECONDS));
+        
         PollThread poller = injector.getInstance(PollThread.class);
         pollFuture = scheduler.scheduleAtFixedRate(poller, 10, 10, TimeUnit.SECONDS);
     }
@@ -117,17 +123,18 @@ public class WorkflowHostImpl implements WorkflowHost {
         registry.registerWorkflow(workflow);
     }
     
-    public void subscribeEvent(String workflowId, int stepId, String eventName, String eventKey, Date asOf) {
+    @Override
+    public void subscribeEvent(String workflowId, int stepId, String eventName, String eventKey, Date asOfUtc) {
         logger.log(Level.INFO, String.format("Subscribing to event %s %s for workflow %s step %s", eventName, eventKey, workflowId, stepId));
         EventSubscription subscription = new EventSubscription();
         subscription.workflowId = workflowId;
         subscription.stepId = stepId;
         subscription.eventName = eventName;
         subscription.eventKey = eventKey;
-        subscription.subscribeAsOf = asOf;
+        subscription.subscribeAsOfUtc = asOfUtc;
 
         persistenceProvider.createEventSubscription(subscription);
-        Iterable<String> events = persistenceProvider.getEvents(eventName, eventKey, asOf);
+        Iterable<String> events = persistenceProvider.getEvents(eventName, eventKey, asOfUtc);
         for (String evt: events) {            
             persistenceProvider.markEventUnprocessed(evt);
             Callable queueTask = Executors.callable(() -> {
@@ -142,7 +149,8 @@ public class WorkflowHostImpl implements WorkflowHost {
         }
     }
     
-    public void publishEvent(String eventName, String eventKey, Object eventData, Date effectiveDate) throws Exception {
+    @Override
+    public void publishEvent(String eventName, String eventKey, Object eventData, Date effectiveDateUtc) throws Exception {
         if (!active)
             throw new Exception("Host is not running");
 
@@ -151,10 +159,10 @@ public class WorkflowHostImpl implements WorkflowHost {
         Event evt = new Event();
 
         //TODO: use utc
-        if (effectiveDate != null)
-            evt.eventTime = effectiveDate;
+        if (effectiveDateUtc != null)
+            evt.eventTimeUtc = effectiveDateUtc;
         else
-            evt.eventTime = new Date();
+            evt.eventTimeUtc = new Date();
 
         evt.eventData = eventData;
         evt.eventKey = eventKey;
@@ -165,6 +173,7 @@ public class WorkflowHostImpl implements WorkflowHost {
         queueProvider.queueForProcessing(QueueType.EVENT, eventId);
     }
     
+    @Override
     public boolean suspendWorkflow(String workflowId) {
         if (lockProvider.acquireLock(workflowId)) {
             try {
@@ -183,6 +192,7 @@ public class WorkflowHostImpl implements WorkflowHost {
         return false;
     }
     
+    @Override
     public boolean resumeWorkflow(String workflowId) {
         if (lockProvider.acquireLock(workflowId)) {
             boolean requeue = false;

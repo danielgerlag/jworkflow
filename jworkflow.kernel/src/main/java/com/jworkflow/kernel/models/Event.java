@@ -7,6 +7,6 @@ public class Event {
     public String eventName;
     public String eventKey;
     public Object eventData;
-    public Date eventTime;
+    public Date eventTimeUtc;
     public boolean isProcessed;
 }

@@ -87,11 +87,11 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return this;
     }
     
-    public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDate) {
+    public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDateUtc) {
         SubscriptionStep newStep = new SubscriptionStep();
         newStep.eventName = eventName;
         newStep.eventKey = eventKey;
-        newStep.effectiveDate = effectiveDate;        
+        newStep.effectiveDate = effectiveDateUtc;        
         workflowBuilder.addStep(newStep);        
         StepBuilder<TData, SubscriptionStepBody> stepBuilder = new StepBuilder<>(dataClass, SubscriptionStepBody.class, workflowBuilder, newStep);
         step.addOutcome(newStep.getId(), null);

@@ -6,7 +6,7 @@ import com.jworkflow.kernel.models.StepExecutionContext;
 
 public class DisplayAnswer implements StepBody {
 
-    public int answer;
+    public Object answer;
     
     @Override
     public ExecutionResult run(StepExecutionContext context) {
