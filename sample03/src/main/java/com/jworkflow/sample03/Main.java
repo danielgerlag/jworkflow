@@ -2,14 +2,15 @@ package com.jworkflow.sample03;
 
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.services.WorkflowModule;
+import com.jworkflow.providers.mongodb.MongoPersistenceProvider;
 import java.util.Date;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {        
                                 
-        WorkflowModule.setup();
-        //WorkflowModule.setup(MongoPersistenceProvider.class);
+        //WorkflowModule.setup();
+        WorkflowModule.setup(MongoPersistenceProvider.class);
         WorkflowHost host = WorkflowModule.getHost();
                 
         host.registerWorkflow(EventsWorkflow.class);
