@@ -1,11 +1,11 @@
 package com.jworkflow.kernel.models;
 
 import com.google.inject.Injector;
-import com.jworkflow.kernel.interfaces.PersistenceProvider;
 import com.jworkflow.kernel.interfaces.StepBody;
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import java.util.Date;
 import java.util.function.Function;
+import com.jworkflow.kernel.interfaces.PersistenceService;
 
 public class SubscriptionStep<TData> extends WorkflowStep {
     
@@ -19,7 +19,7 @@ public class SubscriptionStep<TData> extends WorkflowStep {
     }
 
     @Override
-    public ExecutionPipelineResult initForExecution(WorkflowHost host, PersistenceProvider persistenceStore, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer)
+    public ExecutionPipelineResult initForExecution(WorkflowHost host, PersistenceService persistenceStore, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer)
     {
         if (!executionPointer.eventPublished)
         {
@@ -48,7 +48,7 @@ public class SubscriptionStep<TData> extends WorkflowStep {
     }
 
     @Override
-    public ExecutionPipelineResult beforeExecute(WorkflowHost host, PersistenceProvider persistenceStore, StepExecutionContext context, ExecutionPointer executionPointer, StepBody body) {
+    public ExecutionPipelineResult beforeExecute(WorkflowHost host, PersistenceService persistenceStore, StepExecutionContext context, ExecutionPointer executionPointer, StepBody body) {
         if (executionPointer.eventPublished)
         {
             if (body instanceof SubscriptionStepBody) {

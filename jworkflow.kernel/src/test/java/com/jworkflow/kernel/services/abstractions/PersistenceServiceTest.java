@@ -1,6 +1,5 @@
 package com.jworkflow.kernel.services.abstractions;
 
-import com.jworkflow.kernel.interfaces.PersistenceProvider;
 import com.jworkflow.kernel.models.Event;
 import com.jworkflow.kernel.models.WorkflowInstance;
 import com.jworkflow.kernel.models.WorkflowStatus;
@@ -10,15 +9,16 @@ import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
+import com.jworkflow.kernel.interfaces.PersistenceService;
 
-public abstract class PersistenceProviderTest {
+public abstract class PersistenceServiceTest {
     
-    public abstract PersistenceProvider createProvider();
+    public abstract PersistenceService createService();
     
     @Test
     public void createNewWorkflow() {
         //arrange
-        PersistenceProvider provider = createProvider();
+        PersistenceService provider = createService();
         WorkflowInstance wf = new WorkflowInstance();
         wf.setDescription("wf1");
         
@@ -34,7 +34,7 @@ public abstract class PersistenceProviderTest {
     @Test
     public void persistWorkflow() {
         //arrange
-        PersistenceProvider provider = createProvider();
+        PersistenceService provider = createService();
         WorkflowInstance wf1 = new WorkflowInstance();
         wf1.setDescription("wf1");
         String id = provider.createNewWorkflow(wf1);
@@ -55,7 +55,7 @@ public abstract class PersistenceProviderTest {
     @Test
     public void createEvent() {
         //arrange
-        PersistenceProvider provider = createProvider();
+        PersistenceService provider = createService();
         Event evt = new Event();
         evt.eventName = "test";
         evt.eventKey = "1";
@@ -73,7 +73,7 @@ public abstract class PersistenceProviderTest {
     @Test
     public void getRunnableIntances() {
         //arrange
-        PersistenceProvider provider = createProvider();        
+        PersistenceService provider = createService();        
         String wf1 = provider.createNewWorkflow(makeTestWorkflow("wf1", (long)0, WorkflowStatus.RUNNABLE));
         String wf2 = provider.createNewWorkflow(makeTestWorkflow("wf2", new Date().getTime(), WorkflowStatus.RUNNABLE));
         String wf3 = provider.createNewWorkflow(makeTestWorkflow("wf3", (long)0, WorkflowStatus.COMPLETE));
@@ -94,7 +94,7 @@ public abstract class PersistenceProviderTest {
     @Test
     public void getRunnableEvents() {
         //arrange
-        PersistenceProvider provider = createProvider();        
+        PersistenceService provider = createService();        
         String evt1 = provider.createEvent(makeTestEvent("event", "1", false, new Date(new Date().getTime() - 100000)));
         String evt2 = provider.createEvent(makeTestEvent("event", "2", true, new Date(new Date().getTime() - 100000)));
         String evt3 = provider.createEvent(makeTestEvent("event", "3", false, new Date(new Date().getTime() + 100000)));
@@ -115,7 +115,7 @@ public abstract class PersistenceProviderTest {
     @Test
     public void getEvents() {
         //arrange
-        PersistenceProvider provider = createProvider();        
+        PersistenceService provider = createService();        
         String evt1 = provider.createEvent(makeTestEvent("event", "1", false, new Date(new Date().getTime() - 100000)));
         String evt2 = provider.createEvent(makeTestEvent("event", "1", false, new Date(new Date().getTime() + 100000)));
         String evt3 = provider.createEvent(makeTestEvent("event2", "1", false, new Date(new Date().getTime() + 100000)));

@@ -1,13 +1,13 @@
 package com.jworkflow.kernel.models;
 
 import com.google.inject.Injector;
-import com.jworkflow.kernel.interfaces.PersistenceProvider;
 import com.jworkflow.kernel.interfaces.StepBody;
 import com.jworkflow.kernel.interfaces.StepFieldConsumer;
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import com.jworkflow.kernel.interfaces.PersistenceService;
 
 public class WorkflowStep {
     private Class bodyType;
@@ -125,15 +125,15 @@ public class WorkflowStep {
         this.outputs = outputs;
     }
         
-    public ExecutionPipelineResult initForExecution(WorkflowHost host, PersistenceProvider persistenceStore, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer) {
+    public ExecutionPipelineResult initForExecution(WorkflowHost host, PersistenceService persistenceStore, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer) {
         return ExecutionPipelineResult.NEXT;
     }
 
-    public ExecutionPipelineResult beforeExecute(WorkflowHost host, PersistenceProvider persistenceStore, StepExecutionContext context, ExecutionPointer executionPointer, StepBody body) {
+    public ExecutionPipelineResult beforeExecute(WorkflowHost host, PersistenceService persistenceStore, StepExecutionContext context, ExecutionPointer executionPointer, StepBody body) {
         return ExecutionPipelineResult.NEXT;
     }
     
-    public void afterExecute(WorkflowHost host, PersistenceProvider persistenceStore, StepExecutionContext context, ExecutionResult result, ExecutionPointer executionPointer) {            
+    public void afterExecute(WorkflowHost host, PersistenceService persistenceStore, StepExecutionContext context, ExecutionResult result, ExecutionPointer executionPointer) {            
     }
 
     /**

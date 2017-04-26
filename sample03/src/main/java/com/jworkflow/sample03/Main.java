@@ -2,15 +2,19 @@ package com.jworkflow.sample03;
 
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.services.WorkflowModule;
-import com.jworkflow.providers.mongodb.MongoPersistenceProvider;
+import com.jworkflow.providers.mongodb.MongoPersistenceServiceProvider;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
     public static void main(String[] args) throws Exception {        
-                                
-        //WorkflowModule.setup();
-        WorkflowModule.setup(MongoPersistenceProvider.class);
+        
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(Level.SEVERE);
+        
+        WorkflowModule.setup(MongoPersistenceServiceProvider.configure("mongodb://localhost:27017/jworkflow"));
         WorkflowHost host = WorkflowModule.getHost();
                 
         host.registerWorkflow(EventsWorkflow.class);

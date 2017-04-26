@@ -1,6 +1,6 @@
 package com.jworkflow.kernel.interfaces;
 
-public interface LockProvider {
+public interface LockService {
     boolean acquireLock(String id);
     void releaseLock(String id);
     void start();

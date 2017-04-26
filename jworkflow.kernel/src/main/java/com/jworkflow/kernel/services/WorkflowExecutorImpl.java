@@ -18,13 +18,13 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
 
     
     private final WorkflowRegistry registry;
-    private final PersistenceProvider persistenceStore;
+    private final PersistenceService persistenceStore;
     private final WorkflowHost host;
     private final Logger logger;
     private final Injector injector;
     
     @Inject
-    public WorkflowExecutorImpl(WorkflowRegistry registry, PersistenceProvider persistenceStore, WorkflowHost host, Logger logger, Injector injector) {
+    public WorkflowExecutorImpl(WorkflowRegistry registry, PersistenceService persistenceStore, WorkflowHost host, Logger logger, Injector injector) {
         this.registry = registry;
         this.persistenceStore = persistenceStore;
         this.host = host;

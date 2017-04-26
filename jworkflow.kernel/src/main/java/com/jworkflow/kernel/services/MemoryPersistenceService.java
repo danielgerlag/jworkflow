@@ -9,14 +9,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Singleton
-public class MemoryPersistenceProvider implements PersistenceProvider {
+public class MemoryPersistenceService implements PersistenceService {
     
     
     private final List<WorkflowInstance> workflows;
     private final List<Event> events;
     private final List<EventSubscription> subscriptions;
     
-    public MemoryPersistenceProvider() {
+    public MemoryPersistenceService() {
         workflows = new ArrayList<>();
         events = new ArrayList<>();
         subscriptions = new ArrayList<>();

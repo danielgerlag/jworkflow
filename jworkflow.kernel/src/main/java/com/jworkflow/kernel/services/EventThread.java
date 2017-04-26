@@ -13,13 +13,13 @@ import java.util.logging.Logger;
 
 public class EventThread implements Runnable {
         
-    private final PersistenceProvider persistenceProvider;
-    private final QueueProvider queueProvider;
-    private final LockProvider lockProvider;
+    private final PersistenceService persistenceProvider;
+    private final QueueService queueProvider;
+    private final LockService lockProvider;
     private final Logger logger;
     
     @Inject
-    public EventThread(PersistenceProvider persistenceProvider, QueueProvider queueProvider, LockProvider lockProvider, Logger logger) {
+    public EventThread(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, Logger logger) {
         this.persistenceProvider = persistenceProvider;
         this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;        

@@ -22,9 +22,9 @@ import java.util.logging.Logger;
 public class WorkflowHostImpl implements WorkflowHost {
     
     private boolean active;
-    private final PersistenceProvider persistenceProvider;
-    private final QueueProvider queueProvider;
-    private final LockProvider lockProvider;
+    private final PersistenceService persistenceProvider;
+    private final QueueService queueProvider;
+    private final LockService lockProvider;
     private final WorkflowRegistry registry;
     private final List<ScheduledFuture> workerFutures;
     private final ScheduledExecutorService scheduler;
@@ -34,7 +34,7 @@ public class WorkflowHostImpl implements WorkflowHost {
     private ScheduledFuture pollFuture;
     
     @Inject
-    public WorkflowHostImpl(PersistenceProvider persistenceProvider, QueueProvider queueProvider, LockProvider lockProvider, WorkflowRegistry registry, Injector injector, Logger logger) {
+    public WorkflowHostImpl(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, Injector injector, Logger logger) {
         
         Runtime runtime = Runtime.getRuntime();
         

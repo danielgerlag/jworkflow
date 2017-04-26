@@ -9,14 +9,14 @@ import java.util.logging.Logger;
 
 public class PollThread implements Runnable {
     
-    private final PersistenceProvider persistence;
-    private final QueueProvider queueProvider;
-    private final LockProvider lockProvider;
+    private final PersistenceService persistence;
+    private final QueueService queueProvider;
+    private final LockService lockProvider;
     private final Logger logger;
            
     
     @Inject
-    public PollThread(PersistenceProvider persistence, QueueProvider queueProvider, LockProvider lockProvider, Logger logger) {
+    public PollThread(PersistenceService persistence, QueueService queueProvider, LockService lockProvider, Logger logger) {
         this.persistence = persistence;
         this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;        

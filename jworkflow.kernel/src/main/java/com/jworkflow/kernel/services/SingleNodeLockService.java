@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Singleton
-public class SingleNodeLockProvider implements LockProvider{
+public class SingleNodeLockService implements LockService{
     
     private final List<String> locks;
     
-    public SingleNodeLockProvider() {
+    public SingleNodeLockService() {
         locks = new ArrayList<>();
     }
 

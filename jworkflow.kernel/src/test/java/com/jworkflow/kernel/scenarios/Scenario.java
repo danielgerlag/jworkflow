@@ -1,11 +1,11 @@
 package com.jworkflow.kernel.scenarios;
 
-import com.jworkflow.kernel.interfaces.PersistenceProvider;
 import com.jworkflow.kernel.interfaces.Workflow;
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.models.WorkflowInstance;
 import com.jworkflow.kernel.models.WorkflowStatus;
 import com.jworkflow.kernel.services.WorkflowModule;
+import com.jworkflow.kernel.interfaces.PersistenceService;
 
 public abstract class Scenario {
 
@@ -24,7 +24,7 @@ public abstract class Scenario {
     protected WorkflowInstance runWorkflow(Workflow workflow, Object data) throws Exception{
         setupWorkflow();
         WorkflowHost host = WorkflowModule.getHost();
-        PersistenceProvider persistence = WorkflowModule.getPersistenceProvider();
+        PersistenceService persistence = WorkflowModule.getPersistenceProvider();
         host.registerWorkflow(workflow);
         
         host.start();

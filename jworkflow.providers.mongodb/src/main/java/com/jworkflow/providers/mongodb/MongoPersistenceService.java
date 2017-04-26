@@ -1,6 +1,5 @@
 package com.jworkflow.providers.mongodb;
 
-import com.jworkflow.kernel.interfaces.PersistenceProvider;
 import com.jworkflow.kernel.models.Event;
 import com.jworkflow.kernel.models.EventSubscription;
 import com.jworkflow.kernel.models.WorkflowInstance;
@@ -12,25 +11,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import com.jworkflow.kernel.interfaces.PersistenceService;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.core.index.Index;
 
-public class MongoPersistenceProvider implements PersistenceProvider {
+public class MongoPersistenceService implements PersistenceService {
 
-    MongoOperations mongoOperation;
     
-    public MongoPersistenceProvider(String uri) throws UnknownHostException {
+    private final MongoOperations mongoOperation;
+    private static boolean indexesChecked = false;
+    
+    public MongoPersistenceService(String uri) throws UnknownHostException {
         SimpleMongoDbFactory factory = new SimpleMongoDbFactory(new MongoClientURI(uri));
         mongoOperation = new MongoTemplate(factory);
+        ensureIndexes();
     }    
     
     @Override
@@ -133,6 +133,23 @@ public class MongoPersistenceProvider implements PersistenceProvider {
         Query query = new Query();        
         query.addCriteria(Criteria.where("id").is(id));
         mongoOperation.updateFirst(query, new Update().set("isProcessed", false), Event.class);
+    }
+    
+    private synchronized void ensureIndexes() {
+        if (!indexesChecked) {
+            mongoOperation.indexOps(WorkflowInstance.class).ensureIndex(new Index().on("nextExecution", Direction.ASC));
+            mongoOperation.indexOps(WorkflowInstance.class).ensureIndex(new Index().on("status", Direction.ASC));        
+            
+            mongoOperation.indexOps(Event.class).ensureIndex(new Index().on("eventName", Direction.ASC));
+            mongoOperation.indexOps(Event.class).ensureIndex(new Index().on("eventKey", Direction.ASC));
+            mongoOperation.indexOps(Event.class).ensureIndex(new Index().on("eventTimeUtc", Direction.ASC));
+            mongoOperation.indexOps(Event.class).ensureIndex(new Index().on("isProcessed", Direction.ASC));
+            
+            mongoOperation.indexOps(EventSubscription.class).ensureIndex(new Index().on("eventName", Direction.ASC));
+            mongoOperation.indexOps(EventSubscription.class).ensureIndex(new Index().on("eventKey", Direction.ASC));
+            
+            indexesChecked = true;
+        }
     }
     
 }

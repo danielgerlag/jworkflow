@@ -5,12 +5,12 @@ import com.jworkflow.kernel.models.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Singleton
-public class SingleNodeQueueProvider implements QueueProvider{
+public class SingleNodeQueueService implements QueueService{
         
     private final ConcurrentLinkedQueue<String> workflowQueue;
     private final ConcurrentLinkedQueue<String> eventQueue;
     
-    public SingleNodeQueueProvider() {
+    public SingleNodeQueueService() {
         workflowQueue = new ConcurrentLinkedQueue<>();
         eventQueue = new ConcurrentLinkedQueue<>();
     }

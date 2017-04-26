@@ -3,22 +3,21 @@ package com.jworkflow.kernel.services;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.util.Providers;
 import com.jworkflow.kernel.interfaces.*;
 
-public class WorkflowModule extends AbstractModule {
-  
+public class WorkflowModule extends AbstractModule {  
     
-    private Class persistenceProvider;
+    public Provider<? extends PersistenceService> persistenceProvider;
+    public Provider<? extends QueueService> queueProvider;
+    public Provider<? extends LockService> lockProvider;
     
     public WorkflowModule() {
-        persistenceProvider = MemoryPersistenceProvider.class;
-    }
-    
-    public void setPersistenceProvider(Class<? extends PersistenceProvider> provider) {
-        persistenceProvider = provider;
-    }
-    
-    
+        persistenceProvider = Providers.of(new MemoryPersistenceService());
+        queueProvider = Providers.of(new SingleNodeQueueService());
+        lockProvider = Providers.of(new SingleNodeLockService());
+    }        
     
     @Override 
     protected void configure() {        
@@ -27,9 +26,9 @@ public class WorkflowModule extends AbstractModule {
       bind(WorkflowRegistry.class).to(WorkflowRegistryImpl.class);
       
       //
-      bind(PersistenceProvider.class).to(persistenceProvider);
-      bind(LockProvider.class).to(SingleNodeLockProvider.class);
-      bind(QueueProvider.class).to(SingleNodeQueueProvider.class);
+      bind(PersistenceService.class).toProvider(persistenceProvider);
+      bind(LockService.class).to(SingleNodeLockService.class);
+      bind(QueueService.class).to(SingleNodeQueueService.class);
       
     }    
     
@@ -40,9 +39,17 @@ public class WorkflowModule extends AbstractModule {
         injector = Guice.createInjector(module);        
     }
     
-    public static void setup(Class<? extends PersistenceProvider> persistenceProvider) {
+    public static void setup(Provider<? extends PersistenceService> persistenceProvider) {
         WorkflowModule module = new WorkflowModule();
-        module.setPersistenceProvider(persistenceProvider);        
+        module.persistenceProvider = persistenceProvider;
+        injector = Guice.createInjector(module);
+    }
+    
+    public static void setup(Provider<? extends PersistenceService> persistenceProvider, Provider<? extends QueueService> queueProvider, Provider<? extends LockService> lockProvider) {
+        WorkflowModule module = new WorkflowModule();
+        module.persistenceProvider = persistenceProvider;
+        module.queueProvider = queueProvider;
+        module.lockProvider = lockProvider;
         injector = Guice.createInjector(module);
     }
     
@@ -52,9 +59,9 @@ public class WorkflowModule extends AbstractModule {
         return null;
     }
     
-    public static PersistenceProvider getPersistenceProvider() {
+    public static PersistenceService getPersistenceProvider() {
         if (injector != null)
-            return injector.getInstance(PersistenceProvider.class);        
+            return injector.getInstance(PersistenceService.class);        
         return null;
     }
 }

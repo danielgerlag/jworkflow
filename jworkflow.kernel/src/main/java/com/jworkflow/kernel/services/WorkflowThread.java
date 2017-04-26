@@ -9,12 +9,12 @@ import java.util.logging.Logger;
 public class WorkflowThread implements Runnable {
     
     private final WorkflowExecutor executor;
-    private final QueueProvider queueProvider;
-    private final LockProvider lockProvider;
+    private final QueueService queueProvider;
+    private final LockService lockProvider;
     private final Logger logger;
     
     @Inject
-    public WorkflowThread(WorkflowExecutor executor, QueueProvider queueProvider, LockProvider lockProvider, Logger logger) {
+    public WorkflowThread(WorkflowExecutor executor, QueueService queueProvider, LockService lockProvider, Logger logger) {
         this.executor = executor;
         this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;        

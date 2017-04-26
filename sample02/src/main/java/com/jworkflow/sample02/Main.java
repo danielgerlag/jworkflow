@@ -2,7 +2,7 @@ package com.jworkflow.sample02;
 
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.services.WorkflowModule;
-import com.jworkflow.providers.mongodb.MongoPersistenceProvider;
+import com.jworkflow.providers.mongodb.MongoPersistenceService;
 import java.util.Scanner;
 
 public class Main {

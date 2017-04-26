@@ -3,7 +3,7 @@ package com.jworkflow.kernel.interfaces;
 import com.jworkflow.kernel.models.*;
 import java.util.Date;
 
-public interface PersistenceProvider {
+public interface PersistenceService {
     String createNewWorkflow(WorkflowInstance workflow);
     void persistWorkflow(WorkflowInstance workflow);
     Iterable<String> getRunnableInstances();
