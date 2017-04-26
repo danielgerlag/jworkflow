@@ -1,6 +1,8 @@
 package com.jworkflow.kernel.services;
 import com.jworkflow.kernel.models.*;
 import com.jworkflow.kernel.interfaces.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
@@ -99,7 +101,13 @@ public class StepBuilder<TData, TStep extends StepBody> {
     }
     
     public StepBuilder<TData, TStep> onError(ErrorBehavior behavior) {
-        
+        step.setRetryBehavior(behavior);
+        return this;
+    }
+    
+    public StepBuilder<TData, TStep> onError(ErrorBehavior behavior, Duration retryInterval) {
+        step.setRetryBehavior(behavior);
+        step.setRetryInterval(retryInterval);
         return this;
     }
 }

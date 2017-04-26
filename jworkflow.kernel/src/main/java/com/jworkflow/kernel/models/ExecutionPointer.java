@@ -1,12 +1,13 @@
 package com.jworkflow.kernel.models;
 
+import java.time.Duration;
 import java.util.Date;
 
 public class ExecutionPointer {
     public String id;
     public int stepId;
     public boolean active;
-    public Date sleepUntilUtc;
+    public Duration sleepFor;
     public Object persistenceData;
     public Date startTimeUtc;
     public Date endTimeUtc;
@@ -16,5 +17,6 @@ public class ExecutionPointer {
     public Object eventData;
     public int concurrentFork;
     public boolean pathTerminator;
+    public int retryCounter;
         
 }

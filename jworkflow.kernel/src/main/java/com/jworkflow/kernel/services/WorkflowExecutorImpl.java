@@ -5,7 +5,9 @@ import com.google.inject.Injector;
 import com.jworkflow.kernel.interfaces.*;
 import com.jworkflow.kernel.models.*;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -84,12 +86,23 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 
                 } catch (Exception ex) {
                     Logger.getLogger(WorkflowExecutorImpl.class.getName()).log(Level.SEVERE, null, ex);
+                    
+                    switch (step.get().getRetryBehavior()) {
+                        case RETRY:
+                            pointer.sleepFor = step.get().getRetryInterval();
+                            pointer.retryCounter++;
+                            break;
+                        case SUSPEND:
+                            workflow.setStatus(WorkflowStatus.SUSPENDED);
+                            break;
+                        case TERMINATE:
+                            workflow.setStatus(WorkflowStatus.TERMINATED);
+                            break;
+                    }                    
                 }
-                
-                
             }
             else {
-                // throw
+                logger.log(Level.SEVERE, "Step not found in definition");
             }
             persistenceStore.persistWorkflow(workflow);
         }
@@ -107,6 +120,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     private void processExecutionResult(ExecutionResult result, ExecutionPointer pointer, Optional<WorkflowStep> step, WorkflowInstance workflow) {
         if (result.isProceed()) {
             pointer.active = false;
+            pointer.sleepFor = null;
             pointer.endTimeUtc = Date.from(Instant.now());
             int forkCounter = 1;
             boolean noOutcome = true;
@@ -130,8 +144,8 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
             //pointer.
         }
         else {  //no proceed
-            pointer.persistenceData = result.getPersistenceData();
-            //todo: sleeps
+            pointer.persistenceData = result.getPersistenceData();            
+            pointer.sleepFor = result.getSleepFor();
         }
     }
     
@@ -155,11 +169,12 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         
         for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
             if (pointer.active) {
-                if ((pointer.sleepUntilUtc == null)) {
+                if ((pointer.sleepFor == null)) {
                     workflow.setNextExecution((long)0);
                     return;
                 }
-                long pointerSleep = pointer.sleepUntilUtc.getTime();
+                
+                long pointerSleep = Instant.now().plus(pointer.sleepFor).toEpochMilli();
                 workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
             }            
         }        

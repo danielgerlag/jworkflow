@@ -91,6 +91,48 @@ public abstract class PersistenceProviderTest {
         Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(wf5)));
     }
     
+    @Test
+    public void getRunnableEvents() {
+        //arrange
+        PersistenceProvider provider = createProvider();        
+        String evt1 = provider.createEvent(makeTestEvent("event", "1", false, new Date(new Date().getTime() - 100000)));
+        String evt2 = provider.createEvent(makeTestEvent("event", "2", true, new Date(new Date().getTime() - 100000)));
+        String evt3 = provider.createEvent(makeTestEvent("event", "3", false, new Date(new Date().getTime() + 100000)));
+        String evt4 = provider.createEvent(makeTestEvent("event", "4", true, new Date(new Date().getTime() + 100000)));
+        String evt5 = provider.createEvent(makeTestEvent("event", "5", false, new Date(new Date().getTime() - 100000)));
+                        
+        //act
+        Iterable<String> result = provider.getRunnableEvents();
+        
+        //assert                       
+        Assert.assertTrue(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt1)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt2)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt3)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt4)));
+        Assert.assertTrue(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt5)));
+    }
+    
+    @Test
+    public void getEvents() {
+        //arrange
+        PersistenceProvider provider = createProvider();        
+        String evt1 = provider.createEvent(makeTestEvent("event", "1", false, new Date(new Date().getTime() - 100000)));
+        String evt2 = provider.createEvent(makeTestEvent("event", "1", false, new Date(new Date().getTime() + 100000)));
+        String evt3 = provider.createEvent(makeTestEvent("event2", "1", false, new Date(new Date().getTime() + 100000)));
+        String evt4 = provider.createEvent(makeTestEvent("event", "2", true, new Date(new Date().getTime() + 100000)));
+        String evt5 = provider.createEvent(makeTestEvent("event2", "2", false, new Date(new Date().getTime() - 100000)));
+                        
+        //act
+        Iterable<String> result = provider.getEvents("event", "1", new Date());
+        
+        //assert                       
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt1)));
+        Assert.assertTrue(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt2)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt3)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt4)));
+        Assert.assertFalse(StreamSupport.stream(result.spliterator(), true).anyMatch(x -> x.equals(evt5)));
+    }
+    
     private TestDataClass makeTestData() {
         TestDataClass result = new TestDataClass();
         result.Value1 = 2;
@@ -104,5 +146,14 @@ public abstract class PersistenceProviderTest {
         wf.setNextExecution(nextExecution);
         wf.setStatus(status);
         return wf;
+    }
+    
+    private Event makeTestEvent(String eventName, String eventKey, boolean isProcessed, Date eventTime) {
+        Event evt = new Event();
+        evt.eventName = eventName;
+        evt.eventKey = eventKey;
+        evt.isProcessed = isProcessed;
+        evt.eventTimeUtc = eventTime;
+        return evt;
     }
 }

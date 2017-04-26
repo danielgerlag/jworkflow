@@ -1,9 +1,11 @@
 package com.jworkflow.kernel.models;
 
+import java.time.Duration;
+
 public class ExecutionResult {
     private boolean proceed;
     private Object outcomeValue;
-    private java.time.Period sleepFor;
+    private Duration sleepFor;
     private Object persistenceData;
 
     public static ExecutionResult next() {
@@ -44,14 +46,14 @@ public class ExecutionResult {
     /**
      * @return the sleepFor
      */
-    public java.time.Period getSleepFor() {
+    public Duration getSleepFor() {
         return sleepFor;
     }
 
     /**
      * @param sleepFor the sleepFor to set
      */
-    public void setSleepFor(java.time.Period sleepFor) {
+    public void setSleepFor(Duration sleepFor) {
         this.sleepFor = sleepFor;
     }
 

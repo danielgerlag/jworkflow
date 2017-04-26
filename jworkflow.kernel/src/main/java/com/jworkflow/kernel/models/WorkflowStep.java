@@ -5,6 +5,7 @@ import com.jworkflow.kernel.interfaces.PersistenceProvider;
 import com.jworkflow.kernel.interfaces.StepBody;
 import com.jworkflow.kernel.interfaces.StepFieldConsumer;
 import com.jworkflow.kernel.interfaces.WorkflowHost;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,8 @@ public class WorkflowStep {
     private List<StepOutcome> outcomes;
     private List<StepFieldConsumer> inputs;
     private List<StepFieldConsumer> outputs;
+    private ErrorBehavior retryBehavior;
+    private Duration retryInterval;
 
     public WorkflowStep() {
         this.outcomes = new ArrayList<>();
@@ -131,6 +134,34 @@ public class WorkflowStep {
     }
     
     public void afterExecute(WorkflowHost host, PersistenceProvider persistenceStore, StepExecutionContext context, ExecutionResult result, ExecutionPointer executionPointer) {            
+    }
+
+    /**
+     * @return the retryBehavior
+     */
+    public ErrorBehavior getRetryBehavior() {
+        return retryBehavior;
+    }
+
+    /**
+     * @param retryBehavior the retryBehavior to set
+     */
+    public void setRetryBehavior(ErrorBehavior retryBehavior) {
+        this.retryBehavior = retryBehavior;
+    }
+
+    /**
+     * @return the retryInterval
+     */
+    public Duration getRetryInterval() {
+        return retryInterval;
+    }
+
+    /**
+     * @param retryInterval the retryInterval to set
+     */
+    public void setRetryInterval(Duration retryInterval) {
+        this.retryInterval = retryInterval;
     }
     
 }
