@@ -1,0 +1,25 @@
+language: java
+
+sudo: true
+
+services:
+  - docker
+
+jdk:
+  - oraclejdk8
+  
+install:
+  - cd jworkflow.kernel  
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+  - cd ..
+  - cd jworkflow.providers.mongodb
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+  - cd ..
+    
+script:
+  - cd jworkflow.kernel
+  - mvn test -B
+  - cd ..
+  - cd jworkflow.providers.mongodb
+  - mvn test -B
+  - cd ..
