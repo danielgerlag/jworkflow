@@ -27,7 +27,7 @@ public class EventsWorkflow implements Workflow<MyData> {
         
         builder
                 .StartsWith(Hello.class)
-                .waitFor("myEvent", x -> "1", x -> new Date())
+                .waitFor("myEvent", x -> "1")
                     .output((step, data) -> data.value1 = step.eventData)
                 .then(DisplayAnswer.class)
                     .input((step, data) -> step.answer = data.value1);

@@ -2,13 +2,16 @@ package com.jworkflow.sample01;
 
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.services.WorkflowModule;
-import com.jworkflow.providers.mongodb.MongoPersistenceService;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
     public static void main(String[] args) throws Exception {        
-                                
-        WorkflowModule.setup(); //(MongoPersistenceProvider.class);
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(Level.SEVERE); 
+        
+        WorkflowModule.setup();
         WorkflowHost host = WorkflowModule.getHost();
                 
         host.registerWorkflow(HelloWorkflow.class);
@@ -16,7 +19,7 @@ public class Main {
         host.start();
         
         String id = host.startWorkflow("hello", 1, null);
-        System.out.println("started wf " + id);
+        System.out.println("started workflow " + id);
         
         
         Scanner scanner = new Scanner(System.in);
@@ -24,7 +27,5 @@ public class Main {
         
         System.out.println("shutting down...");
         host.stop();
-                        
-        
     }
 }

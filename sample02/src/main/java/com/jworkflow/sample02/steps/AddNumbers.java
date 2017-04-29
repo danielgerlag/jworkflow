@@ -5,14 +5,13 @@ import com.jworkflow.kernel.models.*;
 
 public class AddNumbers implements StepBody {
 
-    public int Number1;
-    public int Number2;
-    public int Answer;
+    public int number1;
+    public int number2;
+    public int answer;
     
     @Override
     public ExecutionResult run(StepExecutionContext context) {
-        Answer = Number1 + Number2;
+        answer = number1 + number2;
         return ExecutionResult.next();
-    }
-    
+    }    
 }

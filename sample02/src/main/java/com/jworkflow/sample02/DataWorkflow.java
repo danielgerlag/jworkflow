@@ -27,11 +27,10 @@ public class DataWorkflow implements Workflow<MyData> {
         
         builder
                 .StartsWith(AddNumbers.class)  
-                    .input((step, data) -> step.Number1 = data.Value1)
-                    .input((step, data) -> step.Number2 = data.Value2)
-                    .output((step, data) -> data.Value3 = step.Answer)
+                    .input((step, data) -> step.number1 = data.value1)
+                    .input((step, data) -> step.number2 = data.value2)
+                    .output((step, data) -> data.value3 = step.answer)
                 .then(DisplayAnswer.class)
-                    .input((step, data) -> step.Answer = data.Value3);
-    }
-    
+                    .input((step, data) -> step.answer = data.value3);
+    }    
 }

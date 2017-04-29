@@ -6,7 +6,6 @@ import com.jworkflow.kernel.models.ExecutionResult;
 import com.jworkflow.kernel.models.StepExecutionContext;
 import com.jworkflow.kernel.models.WorkflowInstance;
 import com.jworkflow.kernel.models.WorkflowStatus;
-import com.jworkflow.kernel.scenarios.Scenario;
 import com.jworkflow.kernel.services.TypedWorkflowBuilder;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;

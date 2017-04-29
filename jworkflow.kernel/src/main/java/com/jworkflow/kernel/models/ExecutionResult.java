@@ -15,6 +15,14 @@ public class ExecutionResult {
         return result;
     }
     
+    public static ExecutionResult sleep(Duration duration, Object persistenceData) {
+        ExecutionResult result = new ExecutionResult();
+        result.setProceed(false);
+        result.setPersistenceData(persistenceData);
+        result.setSleepFor(duration);
+        return result;
+    }
+    
     /**
      * @return the proceed
      */

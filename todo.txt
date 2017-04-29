@@ -1,5 +1,0 @@
-- mongo indexes
-- mongo config
-- error handling
-- persistence tests
-- docker setup for tests

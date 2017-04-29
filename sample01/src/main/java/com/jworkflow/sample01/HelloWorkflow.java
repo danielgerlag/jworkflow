@@ -32,6 +32,5 @@ public class HelloWorkflow implements Workflow {
                 })                
                 .then(Goodbye.class);
         
-    }
-    
+    }    
 }

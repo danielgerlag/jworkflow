@@ -23,6 +23,9 @@ import org.springframework.data.mongodb.core.index.Index;
 
 public class MongoPersistenceService implements PersistenceService {
 
+    public static MongoPersistenceServiceProvider configure(String uri) {
+        return new MongoPersistenceServiceProvider(uri);
+    }
     
     private final MongoOperations mongoOperation;
     private static boolean indexesChecked = false;
@@ -150,6 +153,5 @@ public class MongoPersistenceService implements PersistenceService {
             
             indexesChecked = true;
         }
-    }
-    
+    }    
 }

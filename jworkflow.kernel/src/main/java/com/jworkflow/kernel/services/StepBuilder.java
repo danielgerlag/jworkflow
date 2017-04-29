@@ -100,6 +100,10 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return stepBuilder;        
     }
     
+    public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey) {
+        return waitFor(eventName, eventKey, x -> new Date());
+    }    
+    
     public StepBuilder<TData, TStep> onError(ErrorBehavior behavior) {
         step.setRetryBehavior(behavior);
         return this;

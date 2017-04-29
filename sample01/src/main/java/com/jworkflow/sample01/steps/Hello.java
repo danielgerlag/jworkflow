@@ -9,6 +9,5 @@ public class Hello implements StepBody {
     public ExecutionResult run(StepExecutionContext context) {
         System.out.println("Hello world");
         return ExecutionResult.next();
-    }
-    
+    }    
 }

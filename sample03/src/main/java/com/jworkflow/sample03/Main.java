@@ -2,7 +2,7 @@ package com.jworkflow.sample03;
 
 import com.jworkflow.kernel.interfaces.WorkflowHost;
 import com.jworkflow.kernel.services.WorkflowModule;
-import com.jworkflow.providers.mongodb.MongoPersistenceServiceProvider;
+import com.jworkflow.providers.mongodb.MongoPersistenceService;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -14,7 +14,7 @@ public class Main {
         Logger rootLogger = Logger.getLogger("");
         rootLogger.setLevel(Level.SEVERE);
         
-        WorkflowModule.setup(MongoPersistenceServiceProvider.configure("mongodb://localhost:27017/jworkflow"));
+        WorkflowModule.setup(MongoPersistenceService.configure("mongodb://localhost:27017/jworkflow"));
         WorkflowHost host = WorkflowModule.getHost();
                 
         host.registerWorkflow(EventsWorkflow.class);
@@ -23,8 +23,7 @@ public class Main {
         MyData data = new MyData();        
         
         String id = host.startWorkflow("events-workflow", 1, data);
-        System.out.println("started wf " + id);
-        
+        System.out.println("started workflow " + id);        
         
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter value to publish");
@@ -34,8 +33,7 @@ public class Main {
         
         scanner.nextLine();
         System.out.println("shutting down...");
-        host.stop();
-                        
+        host.stop();                        
         
     }
 }

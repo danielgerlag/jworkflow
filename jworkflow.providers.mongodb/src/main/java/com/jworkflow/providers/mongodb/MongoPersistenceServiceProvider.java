@@ -22,9 +22,4 @@ public class MongoPersistenceServiceProvider implements Provider<MongoPersistenc
         }
         return null;
     }
-    
-    public static MongoPersistenceServiceProvider configure(String uri) {
-        return new MongoPersistenceServiceProvider(uri);
-    }
-    
 }

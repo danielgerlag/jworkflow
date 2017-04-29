@@ -26,13 +26,11 @@ public class TypedWorkflowBuilder<TData> extends WorkflowBuilder {
     }
     
     
-    
-    
     public <TStep extends StepBody> StepBuilder<TData, TStep> StartsWith(Class<TStep> stepClass) {        
-        return StartsWith(stepClass, null);        
+        return startsWith(stepClass, null);        
     }
     
-    public <TStep extends StepBody> StepBuilder<TData, TStep> StartsWith(Class<TStep> stepClass, Consumer<StepBuilder<TData, TStep>> stepSetup) {                
+    public <TStep extends StepBody> StepBuilder<TData, TStep> startsWith(Class<TStep> stepClass, Consumer<StepBuilder<TData, TStep>> stepSetup) {                
         WorkflowStep step = new WorkflowStep();
         step.setBodyType(stepClass);     
         step.setName(stepClass.getName());
@@ -45,9 +43,6 @@ public class TypedWorkflowBuilder<TData> extends WorkflowBuilder {
         setInitialStep(initialStep);
         
         return stepBuilder;        
-    }
-
-    
-            
+    }       
     
 }
