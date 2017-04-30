@@ -7,7 +7,7 @@ Provides support to persist workflows running on [JWorkflow](../README.md) to a 
 Use the MongoPersistenceService.configure static method when bootstraping your application.
 
 ```java
-import com.jworkflow.providers.mongodb.MongoPersistenceService;
+import net.jworkflow.providers.mongodb.MongoPersistenceService;
 
 ...
 
