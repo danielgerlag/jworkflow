@@ -5,6 +5,31 @@
     <artifactId>jworkflow.providers.mongodb</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
+    
+    <name>MongoDB Provider for JWorkflow</name>
+    <description>JWorkflow is a light weight workflow library for Java</description>
+    <url>http://github.com/danielgerlag/jworkflow</url>
+    
+    <licenses>
+        <license>
+          <name>MIT License</name>
+          <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+      </licenses>
+
+    <developers>
+        <developer>
+          <name>Daniel Gerlag</name>
+          <email>daniel@gerlag.ca</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/danielgerlag/jworkflow.git</connection>
+        <developerConnection>scm:git:ssh://github.com:danielgerlag/jworkflow.git</developerConnection>
+        <url>http://github.com/danielgerlag/jworkflow/tree/master</url>
+    </scm>
+    
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
