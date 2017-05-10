@@ -1,7 +1,9 @@
 package net.jworkflow.kernel.models;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ExecutionPointer {
     public String id;
@@ -18,5 +20,12 @@ public class ExecutionPointer {
     public int concurrentFork;
     public boolean pathTerminator;
     public int retryCounter;
+    public String predecessorId;
+    public Object contextItem;
+    public List<String> children;
+
+    public ExecutionPointer() {
+        this.children = new ArrayList<>();
+    }
         
 }

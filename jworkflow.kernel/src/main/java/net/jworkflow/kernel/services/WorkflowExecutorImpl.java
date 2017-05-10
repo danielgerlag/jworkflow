@@ -130,6 +130,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     }
 
     private void processExecutionResult(ExecutionResult result, ExecutionPointer pointer, Optional<WorkflowStep> step, WorkflowInstance workflow) {
+        //TODO: move to own class
         if (result.isProceed()) {
             pointer.active = false;
             pointer.sleepFor = null;
@@ -144,6 +145,8 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 ExecutionPointer newPointer = new ExecutionPointer();
                 newPointer.id = UUID.randomUUID().toString();
                 newPointer.active = true;
+                newPointer.predecessorId = pointer.id;
+                newPointer.contextItem = pointer.contextItem;
                 newPointer.stepId = outcome.getNextStep();
                 newPointer.concurrentFork = (forkCounter * pointer.concurrentFork);
                 workflow.getExecutionPointers().add(newPointer);
