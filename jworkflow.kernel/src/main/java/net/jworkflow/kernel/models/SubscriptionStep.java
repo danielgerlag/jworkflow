@@ -2,10 +2,8 @@ package net.jworkflow.kernel.models;
 
 import com.google.inject.Injector;
 import net.jworkflow.kernel.interfaces.StepBody;
-import net.jworkflow.kernel.interfaces.WorkflowHost;
 import java.util.Date;
 import java.util.function.Function;
-import net.jworkflow.kernel.interfaces.PersistenceService;
 
 public class SubscriptionStep<TData> extends WorkflowStep {
     
@@ -19,7 +17,7 @@ public class SubscriptionStep<TData> extends WorkflowStep {
     }
 
     @Override
-    public ExecutionPipelineResult initForExecution(WorkflowHost host, PersistenceService persistenceStore, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer)
+    public ExecutionPipelineResult initForExecution(WorkflowExecutorResult executorResult, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer)
     {
         if (!executionPointer.eventPublished)
         {
@@ -38,9 +36,16 @@ public class SubscriptionStep<TData> extends WorkflowStep {
                 date = effectiveDate.apply(data);
 
             executionPointer.eventName = eventName;
-            executionPointer.active = false;
-            persistenceStore.persistWorkflow(workflow);
-            host.subscribeEvent(workflow.getId(), executionPointer.stepId, executionPointer.eventName, executionPointer.eventKey, date);
+            executionPointer.active = false;            
+            
+            EventSubscription subscription = new EventSubscription();
+            subscription.workflowId = workflow.getId();
+            subscription.stepId = executionPointer.stepId;
+            subscription.eventName = executionPointer.eventName;
+            subscription.eventKey = executionPointer.eventKey;
+            subscription.subscribeAsOfUtc = date;
+            
+            executorResult.subscriptions.add(subscription);
 
             return ExecutionPipelineResult.DEFER;
         }
@@ -48,7 +53,7 @@ public class SubscriptionStep<TData> extends WorkflowStep {
     }
 
     @Override
-    public ExecutionPipelineResult beforeExecute(WorkflowHost host, PersistenceService persistenceStore, StepExecutionContext context, ExecutionPointer executionPointer, StepBody body) {
+    public ExecutionPipelineResult beforeExecute(WorkflowExecutorResult executorResult, StepExecutionContext context, ExecutionPointer executionPointer, StepBody body) {
         if (executionPointer.eventPublished)
         {
             if (body instanceof SubscriptionStepBody) {

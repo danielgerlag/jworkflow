@@ -25,31 +25,29 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.jworkflow.kernel.models.WorkflowExecutorResult;
 
 public class WorkflowExecutorImpl implements WorkflowExecutor {
 
     
     private final WorkflowRegistry registry;
-    private final PersistenceService persistenceStore;
-    private final WorkflowHost host;
     private final Logger logger;
     private final Injector injector;
     
     @Inject
-    public WorkflowExecutorImpl(WorkflowRegistry registry, PersistenceService persistenceStore, WorkflowHost host, Logger logger, Injector injector) {
+    public WorkflowExecutorImpl(WorkflowRegistry registry, Logger logger, Injector injector) {
         this.registry = registry;
-        this.persistenceStore = persistenceStore;
-        this.host = host;
         this.logger = logger;
         this.injector = injector;
     }
     
     @Override
-    public boolean execute(String workflowId) {
-        
-        WorkflowInstance workflow = persistenceStore.getWorkflowInstance(workflowId);
+    public WorkflowExecutorResult execute(WorkflowInstance workflow) {
+        WorkflowExecutorResult wfResult = new WorkflowExecutorResult();
+        wfResult.requeue = false;
+                
         if (workflow.getStatus() != WorkflowStatus.RUNNABLE)
-            return false;
+            return wfResult;
         
         ExecutionPointer[] exePointers = workflow.getExecutionPointers().stream().filter(x -> x.active).toArray(ExecutionPointer[]::new);
         
@@ -57,7 +55,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
         
         if (def == null) {
             logger.log(Level.SEVERE, "Workflow not registred");
-            return false;
+            return wfResult;
         }
                 
         for (ExecutionPointer pointer: exePointers) {
@@ -68,7 +66,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 
                 try {
                     
-                    if (step.get().initForExecution(host, persistenceStore, def, workflow, pointer) == ExecutionPipelineResult.DEFER)
+                    if (step.get().initForExecution(wfResult, def, workflow, pointer) == ExecutionPipelineResult.DEFER)
                         continue;
                     
                     if (pointer.startTimeUtc == null)
@@ -86,7 +84,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     context.setStep(step.get());
                     context.setPersistenceData(pointer.persistenceData);
                     
-                    if (step.get().beforeExecute(host, persistenceStore, context, pointer, body) == ExecutionPipelineResult.DEFER)
+                    if (step.get().beforeExecute(wfResult, context, pointer, body) == ExecutionPipelineResult.DEFER)
                         continue;
                     
                     ExecutionResult result = body.run(context);
@@ -94,7 +92,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     processOutputs(step.get(), body, workflow.getData());
                     processExecutionResult(result, pointer, step, workflow);
                             
-                    step.get().afterExecute(host, persistenceStore, context, result, pointer);
+                    step.get().afterExecute(wfResult, context, result, pointer);
                 
                 } catch (Exception ex) {
                     Logger.getLogger(WorkflowExecutorImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -115,18 +113,18 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
             }
             else {
                 logger.log(Level.SEVERE, "Step not found in definition");
-            }
-            persistenceStore.persistWorkflow(workflow);
+            }            
         }
         
         determineNextExecution(workflow);
-        persistenceStore.persistWorkflow(workflow);
-        
+                
         if (workflow.getNextExecution() == null)
-            return false;
+            return wfResult;
         
         long now = new Date().getTime();
-        return ((workflow.getNextExecution() < now) && workflow.getStatus() == WorkflowStatus.RUNNABLE);
+        wfResult.requeue = ((workflow.getNextExecution() < now) && workflow.getStatus() == WorkflowStatus.RUNNABLE);
+        
+        return wfResult;
     }
 
     private void processExecutionResult(ExecutionResult result, ExecutionPointer pointer, Optional<WorkflowStep> step, WorkflowInstance workflow) {
