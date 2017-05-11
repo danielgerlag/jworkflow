@@ -5,8 +5,7 @@ import net.jworkflow.kernel.models.WorkflowStep;
 import net.jworkflow.kernel.interfaces.StepBody;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import net.jworkflow.kernel.interfaces.StepBuilder;
 
 public class TypedWorkflowBuilder<TData> extends WorkflowBuilder {
     
@@ -35,7 +34,7 @@ public class TypedWorkflowBuilder<TData> extends WorkflowBuilder {
         WorkflowStep step = new WorkflowStep();
         step.setBodyType(stepClass);     
         step.setName(stepClass.getName());
-        StepBuilder<TData, TStep> stepBuilder = new StepBuilder<>(dataType, stepClass, this, step);
+        StepBuilder<TData, TStep> stepBuilder = new DefaultStepBuilder<>(dataType, stepClass, this, step);
                 
         if (stepSetup != null)
             stepSetup.accept(stepBuilder);

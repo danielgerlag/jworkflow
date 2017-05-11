@@ -1,21 +1,13 @@
 package net.jworkflow.kernel.services;
-import net.jworkflow.kernel.models.WorkflowStepInline;
-import net.jworkflow.kernel.models.SubscriptionStep;
-import net.jworkflow.kernel.models.StepOutcome;
-import net.jworkflow.kernel.models.WorkflowStep;
-import net.jworkflow.kernel.models.SubscriptionStepBody;
-import net.jworkflow.kernel.models.ErrorBehavior;
-import net.jworkflow.kernel.interfaces.StepFieldConsumer;
-import net.jworkflow.kernel.interfaces.StepExecutionConsumer;
-import net.jworkflow.kernel.interfaces.StepBody;
-import net.jworkflow.kernel.interfaces.StepBuilderConsumer;
+import net.jworkflow.kernel.interfaces.StepBuilder;
+import net.jworkflow.kernel.models.*;
+import net.jworkflow.kernel.interfaces.*;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
-public class StepBuilder<TData, TStep extends StepBody> {
+public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep> {
     
     
     private final WorkflowBuilder workflowBuilder;
@@ -23,26 +15,30 @@ public class StepBuilder<TData, TStep extends StepBody> {
     private final Class<TData> dataClass;
     
     
-    public StepBuilder(Class<TData> dataClass, Class<TStep> stepClass, WorkflowBuilder workflowBuilder, WorkflowStep step) {
+    public DefaultStepBuilder(Class<TData> dataClass, Class<TStep> stepClass, WorkflowBuilder workflowBuilder, WorkflowStep step) {
         this.workflowBuilder = workflowBuilder;
         this.step = step;
         this.dataClass = dataClass;
     }
     
+    @Override
     public WorkflowStep getStep() {
         return step;
     }
     
+    @Override
     public StepBuilder<TData, TStep> name(String name) {
         step.setName(name);
         return this;
     }
     
     
+    @Override
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass) {                
         return then(stepClass, x -> {});
     }
     
+    @Override
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, StepBuilderConsumer stepSetup) {
         WorkflowStep newStep = new WorkflowStep();
         newStep.setBodyType(stepClass); 
@@ -50,7 +46,7 @@ public class StepBuilder<TData, TStep extends StepBody> {
         
         workflowBuilder.addStep(newStep);
         
-        StepBuilder<TData, TNewStep> stepBuilder = new StepBuilder<>(dataClass, stepClass, workflowBuilder, newStep);
+        StepBuilder<TData, TNewStep> stepBuilder = new DefaultStepBuilder<>(dataClass, stepClass, workflowBuilder, newStep);
                 
         if (stepSetup != null)
             stepSetup.accept(stepBuilder);
@@ -60,22 +56,25 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return stepBuilder;        
     }
     
+    @Override
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, StepBuilder<TData, TNewStep> newStep) {        
-        step.addOutcome(newStep.step.getId(), null);
-        StepBuilder<TData, TNewStep> stepBuilder = new StepBuilder<>(dataClass, stepClass, workflowBuilder, newStep.step);
+        step.addOutcome(newStep.getStep().getId(), null);
+        StepBuilder<TData, TNewStep> stepBuilder = new DefaultStepBuilder<>(dataClass, stepClass, workflowBuilder, newStep.getStep());
         
         return stepBuilder;        
     }
     
+    @Override
     public StepBuilder<TData, WorkflowStepInline.InlineBody> then(StepExecutionConsumer body) {                
         WorkflowStepInline newStep = new WorkflowStepInline(body);        
         workflowBuilder.addStep(newStep);        
-        StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new StepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);        
+        StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new DefaultStepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);        
         step.addOutcome(newStep.getId(), null);        
         
         return stepBuilder;        
     }
     
+    @Override
     public StepOutcomeBuilder<TData> when(Object value) {
         StepOutcome result = new StepOutcome();
         result.setValue(value);
@@ -85,38 +84,44 @@ public class StepBuilder<TData, TStep extends StepBody> {
         return outcomeBuilder;
     }
     
+    @Override
     public StepBuilder<TData, TStep> input(StepFieldConsumer<TStep, TData> consumer) {
         List<StepFieldConsumer> inputs = step.getInputs();        
         inputs.add(consumer);
         return this;
     }
     
+    @Override
     public StepBuilder<TData, TStep> output(StepFieldConsumer<TStep, TData> consumer) {
         List<StepFieldConsumer> outputs = step.getOutputs();        
         outputs.add(consumer);
         return this;
     }
     
+    @Override
     public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDateUtc) {
         SubscriptionStep newStep = new SubscriptionStep();
         newStep.eventName = eventName;
         newStep.eventKey = eventKey;
         newStep.effectiveDate = effectiveDateUtc;        
         workflowBuilder.addStep(newStep);        
-        StepBuilder<TData, SubscriptionStepBody> stepBuilder = new StepBuilder<>(dataClass, SubscriptionStepBody.class, workflowBuilder, newStep);
+        StepBuilder<TData, SubscriptionStepBody> stepBuilder = new DefaultStepBuilder<>(dataClass, SubscriptionStepBody.class, workflowBuilder, newStep);
         step.addOutcome(newStep.getId(), null);
         return stepBuilder;        
     }
     
+    @Override
     public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey) {
         return waitFor(eventName, eventKey, x -> new Date());
     }    
     
+    @Override
     public StepBuilder<TData, TStep> onError(ErrorBehavior behavior) {
         step.setRetryBehavior(behavior);
         return this;
     }
     
+    @Override
     public StepBuilder<TData, TStep> onError(ErrorBehavior behavior, Duration retryInterval) {
         step.setRetryBehavior(behavior);
         step.setRetryInterval(retryInterval);
