@@ -89,7 +89,6 @@ public class WorkflowHostImpl implements WorkflowHost {
         ep.id = UUID.randomUUID().toString();
         ep.active = true;
         ep.stepId = def.getInitialStep();
-        ep.concurrentFork = 1;
         
         wf.getExecutionPointers().add(ep);
         String id = persistenceProvider.createNewWorkflow(wf);

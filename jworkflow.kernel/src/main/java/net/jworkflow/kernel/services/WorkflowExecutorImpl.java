@@ -129,12 +129,14 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
 
     private void processExecutionResult(ExecutionResult result, ExecutionPointer pointer, Optional<WorkflowStep> step, WorkflowInstance workflow) {
         //TODO: move to own class
+        
+        pointer.persistenceData = result.getPersistenceData();            
+        pointer.sleepFor = result.getSleepFor();
+        
         if (result.isProceed()) {
             pointer.active = false;
             pointer.sleepFor = null;
             pointer.endTimeUtc = Date.from(Instant.now());
-            int forkCounter = 1;
-            boolean noOutcome = true;
             
             StepOutcome[] outcomes = step.get().getOutcomes().stream().filter(x -> x.getValue() == result.getOutcomeValue()).toArray(StepOutcome[]::new);
             
@@ -146,19 +148,23 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 newPointer.predecessorId = pointer.id;
                 newPointer.contextItem = pointer.contextItem;
                 newPointer.stepId = outcome.getNextStep();
-                newPointer.concurrentFork = (forkCounter * pointer.concurrentFork);
                 workflow.getExecutionPointers().add(newPointer);
-                noOutcome = false;
-                forkCounter++;
             }
-            
-            pointer.pathTerminator = noOutcome;
-            
-            //pointer.
         }
         else {  //no proceed
-            pointer.persistenceData = result.getPersistenceData();            
-            pointer.sleepFor = result.getSleepFor();
+            for (Object branchValue: result.getBranches()) {
+                for (int childId: step.get().getChildren()) {                                        
+                    ExecutionPointer newPointer = new ExecutionPointer();
+                    newPointer.id = UUID.randomUUID().toString();
+                    newPointer.active = true;
+                    newPointer.predecessorId = pointer.id;
+                    newPointer.contextItem = branchValue;
+                    newPointer.stepId = childId;
+                    workflow.getExecutionPointers().add(newPointer);
+                    
+                    pointer.children.add(newPointer.id);
+                }
+            }
         }
     }
     
@@ -178,11 +184,10 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     
     private void determineNextExecution(WorkflowInstance workflow) {
         workflow.setNextExecution(null);
-        
-        
-        for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
-            if (pointer.active) {
-                if ((pointer.sleepFor == null)) {
+                
+        for (ExecutionPointer pointer : workflow.getExecutionPointers()) { 
+            if ((pointer.active) && (pointer.children.isEmpty())) {
+                if ((pointer.sleepFor == null) ) {
                     workflow.setNextExecution((long)0);
                     return;
                 }
@@ -191,23 +196,23 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                 workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
             }            
         }        
-                
+        
         if (workflow.getNextExecution() == null) {
-            int forks = 1;
-            int terminals = 0;
-            
-            for(ExecutionPointer pointer : workflow.getExecutionPointers()) { 
-                forks = Math.max(pointer.concurrentFork, forks);
-                if (pointer.pathTerminator)
-                    terminals++;
-                
-                if (forks <= terminals) {
-                    workflow.setStatus(WorkflowStatus.COMPLETE);
-                    workflow.setCompleteTimeUtc(Date.from(Instant.now()));
-                }                
-             }          
+            for (ExecutionPointer pointer : workflow.getExecutionPointers()) { 
+                if ((pointer.active) && (!pointer.children.isEmpty())) {
+                    if (workflow.getExecutionPointers().stream().filter(x -> pointer.children.contains(x.id)).allMatch(x -> x.endTimeUtc != null)) {
+                        workflow.setNextExecution((long)0);
+                        return;
+                    }
+                }
+            }
         }
         
-    }
-    
+        if (workflow.getNextExecution() == null) {            
+            if (workflow.getExecutionPointers().stream().allMatch(x -> x.endTimeUtc != null)) {
+                workflow.setStatus(WorkflowStatus.COMPLETE);
+                workflow.setCompleteTimeUtc(Date.from(Instant.now()));
+            }                      
+        }        
+    }    
 }

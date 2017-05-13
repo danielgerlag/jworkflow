@@ -17,8 +17,6 @@ public class ExecutionPointer {
     public String eventKey;
     public boolean eventPublished;
     public Object eventData;
-    public int concurrentFork;
-    public boolean pathTerminator;
     public int retryCounter;
     public String predecessorId;
     public Object contextItem;

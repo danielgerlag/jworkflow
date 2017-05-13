@@ -3,7 +3,6 @@ package net.jworkflow.kernel.models;
 import com.google.inject.Injector;
 import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.interfaces.StepFieldConsumer;
-import net.jworkflow.kernel.interfaces.WorkflowHost;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ public class WorkflowStep {
     private int id;
     private String name;
     private List<StepOutcome> outcomes;
+    private List<Integer> children;
     private List<StepFieldConsumer> inputs;
     private List<StepFieldConsumer> outputs;
     private ErrorBehavior retryBehavior;
@@ -22,6 +22,7 @@ public class WorkflowStep {
         this.outcomes = new ArrayList<>();
         this.inputs = new ArrayList<>();
         this.outputs = new ArrayList<>();
+        this.children = new ArrayList<>();
     }
     
     public StepBody constructBody(Injector injector) throws InstantiationException, IllegalAccessException {
@@ -161,6 +162,20 @@ public class WorkflowStep {
      */
     public void setRetryInterval(Duration retryInterval) {
         this.retryInterval = retryInterval;
+    }
+
+    /**
+     * @return the children
+     */
+    public List<Integer> getChildren() {
+        return children;
+    }
+
+    /**
+     * @param children the children to set
+     */
+    public void setChildren(List<Integer> children) {
+        this.children = children;
     }
     
 }
