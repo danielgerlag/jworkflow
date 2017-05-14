@@ -4,6 +4,8 @@ public class StepExecutionContext {
     private Object persistenceData;
     private WorkflowStep step;
     private WorkflowInstance workflow;
+    private Object item;
+    private ExecutionPointer executionPointer;
 
     /**
      * @return the persistenceData
@@ -45,5 +47,33 @@ public class StepExecutionContext {
      */
     public void setWorkflow(WorkflowInstance workflow) {
         this.workflow = workflow;
+    }
+
+    /**
+     * @return the item
+     */
+    public Object getItem() {
+        return item;
+    }
+
+    /**
+     * @param item the item to set
+     */
+    public void setItem(Object item) {
+        this.item = item;
+    }
+
+    /**
+     * @return the executionPointer
+     */
+    public ExecutionPointer getExecutionPointer() {
+        return executionPointer;
+    }
+
+    /**
+     * @param executionPointer the executionPointer to set
+     */
+    public void setExecutionPointer(ExecutionPointer executionPointer) {
+        this.executionPointer = executionPointer;
     }
 }

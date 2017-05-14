@@ -1,9 +1,17 @@
-package net.jworkflow.kernel.models;
+package net.jworkflow.kernel.steps;
 
 import com.google.inject.Injector;
 import net.jworkflow.kernel.interfaces.StepBody;
 import java.util.Date;
 import java.util.function.Function;
+import net.jworkflow.kernel.models.EventSubscription;
+import net.jworkflow.kernel.models.ExecutionPipelineResult;
+import net.jworkflow.kernel.models.ExecutionPointer;
+import net.jworkflow.kernel.models.StepExecutionContext;
+import net.jworkflow.kernel.models.WorkflowDefinition;
+import net.jworkflow.kernel.models.WorkflowExecutorResult;
+import net.jworkflow.kernel.models.WorkflowInstance;
+import net.jworkflow.kernel.models.WorkflowStep;
 
 public class SubscriptionStep<TData> extends WorkflowStep {
     

@@ -4,5 +4,5 @@ import net.jworkflow.kernel.models.ExecutionResult;
 import net.jworkflow.kernel.models.StepExecutionContext;
 
 public interface StepBody {
-    ExecutionResult run(StepExecutionContext context);
+    ExecutionResult run(StepExecutionContext context) throws Exception;
 }

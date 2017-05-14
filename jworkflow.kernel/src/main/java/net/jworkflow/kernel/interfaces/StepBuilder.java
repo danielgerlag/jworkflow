@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.function.Function;
 import net.jworkflow.kernel.models.ErrorBehavior;
-import net.jworkflow.kernel.models.SubscriptionStepBody;
+import net.jworkflow.kernel.steps.SubscriptionStepBody;
 import net.jworkflow.kernel.models.WorkflowStep;
 import net.jworkflow.kernel.models.WorkflowStepInline;
 import net.jworkflow.kernel.services.StepOutcomeBuilder;

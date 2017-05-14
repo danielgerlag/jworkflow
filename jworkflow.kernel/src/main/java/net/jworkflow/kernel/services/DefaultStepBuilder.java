@@ -1,4 +1,6 @@
 package net.jworkflow.kernel.services;
+import net.jworkflow.kernel.steps.SubscriptionStepBody;
+import net.jworkflow.kernel.steps.SubscriptionStep;
 import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.models.*;
 import net.jworkflow.kernel.interfaces.*;

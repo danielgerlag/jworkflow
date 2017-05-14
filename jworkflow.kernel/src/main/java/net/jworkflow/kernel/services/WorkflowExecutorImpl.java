@@ -12,14 +12,9 @@ import net.jworkflow.kernel.models.ExecutionResult;
 import net.jworkflow.kernel.interfaces.WorkflowRegistry;
 import net.jworkflow.kernel.interfaces.WorkflowExecutor;
 import net.jworkflow.kernel.interfaces.StepBody;
-import net.jworkflow.kernel.interfaces.PersistenceService;
-import net.jworkflow.kernel.interfaces.WorkflowHost;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import java.lang.reflect.Field;
-import java.time.Duration;
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -83,6 +78,8 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     context.setWorkflow(workflow);
                     context.setStep(step.get());
                     context.setPersistenceData(pointer.persistenceData);
+                    context.setItem(pointer.contextItem);
+                    context.setExecutionPointer(pointer);
                     
                     if (step.get().beforeExecute(wfResult, context, pointer, body) == ExecutionPipelineResult.DEFER)
                         continue;
