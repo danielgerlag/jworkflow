@@ -3,6 +3,7 @@ package net.jworkflow.kernel.steps;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.models.ControlStepData;
 import net.jworkflow.kernel.models.ExecutionPointer;
@@ -11,12 +12,13 @@ import net.jworkflow.kernel.models.StepExecutionContext;
 
 public class While implements StepBody {
 
-    public boolean conditionResult;
+    public Function<Object, Boolean> condition;
     
     @Override
     public ExecutionResult run(StepExecutionContext context) throws Exception {
         
         if (context.getPersistenceData() == null) {
+            Boolean conditionResult = condition.apply(context.getWorkflow().getData());
             if (conditionResult) {
                 Object[] defaultList = new Object[]{null};
                 return ExecutionResult.branch(defaultList, new ControlStepData(true));

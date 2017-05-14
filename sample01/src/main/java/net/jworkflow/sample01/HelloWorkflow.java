@@ -26,7 +26,7 @@ public class HelloWorkflow implements Workflow {
     @Override
     public void build(WorkflowBuilder builder) {
         
-        builder.StartsWith(Hello.class)
+        builder.startsWith(Hello.class)
                 .then(context -> { 
                     return ExecutionResult.next(); 
                 })                

@@ -111,6 +111,10 @@ public class WorkflowStep {
     public void setInputs(List<StepFieldConsumer> inputs) {
         this.inputs = inputs;
     }
+    
+    public void addInput(StepFieldConsumer value) {
+        inputs.add(value);
+    }
 
     /**
      * @return the outputs
@@ -124,6 +128,10 @@ public class WorkflowStep {
      */
     public void setOutputs(List<StepFieldConsumer> outputs) {
         this.outputs = outputs;
+    }
+    
+    public void addOutput(StepFieldConsumer value) {
+        outputs.add(value);
     }
         
     public ExecutionPipelineResult initForExecution(WorkflowExecutorResult executorResult, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer) {

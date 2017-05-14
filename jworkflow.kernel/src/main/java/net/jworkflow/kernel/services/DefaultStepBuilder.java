@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import net.jworkflow.kernel.steps.Foreach;
 import net.jworkflow.kernel.steps.ForeachStep;
+import net.jworkflow.kernel.steps.While;
+import net.jworkflow.kernel.steps.WhileStep;
 
 public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep>, ControlStepBuilder<TData, TStep> {
     
@@ -137,12 +139,20 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     @Override
     public ControlStepBuilder<TData, Foreach> foreach(Function<TData, Object[]> collection) {
         ForeachStep<TData> newStep = new ForeachStep<>();
-        newStep.collection = collection;
+        newStep.collection = collection;        
         workflowBuilder.addStep(newStep);        
-        
         ControlStepBuilder<TData, Foreach> stepBuilder = new DefaultStepBuilder<>(dataClass, Foreach.class, workflowBuilder, newStep);        
+        step.addOutcome(newStep.getId(), null);
+        return stepBuilder;
+    }
+    
+    @Override
+    public ControlStepBuilder<TData, While> While(Function<TData, Boolean> condition) {
+        WhileStep<TData> newStep = new WhileStep<>();
+        newStep.condition = condition;
+        workflowBuilder.addStep(newStep);        
+        ControlStepBuilder<TData, While> stepBuilder = new DefaultStepBuilder<>(dataClass, While.class, workflowBuilder, newStep);        
         step.addOutcome(newStep.getId(), null);        
-        
         return stepBuilder;
     }
     

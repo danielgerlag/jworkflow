@@ -10,6 +10,7 @@ import net.jworkflow.kernel.models.WorkflowStep;
 import net.jworkflow.kernel.models.WorkflowStepInline;
 import net.jworkflow.kernel.services.StepOutcomeBuilder;
 import net.jworkflow.kernel.steps.Foreach;
+import net.jworkflow.kernel.steps.While;
 
 public interface StepBuilder<TData, TStep extends StepBody> {
 
@@ -40,5 +41,7 @@ public interface StepBuilder<TData, TStep extends StepBody> {
     StepOutcomeBuilder<TData> when(Object value);
     
     ControlStepBuilder<TData, Foreach> foreach(Function<TData, Object[]> collection);
+    
+    ControlStepBuilder<TData, While> While(Function<TData, Boolean> condition);
     
 }
