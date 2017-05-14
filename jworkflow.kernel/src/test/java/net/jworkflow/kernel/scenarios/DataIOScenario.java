@@ -8,31 +8,47 @@ import net.jworkflow.kernel.models.WorkflowInstance;
 import net.jworkflow.kernel.models.WorkflowStatus;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 
-public class BasicWorkflowScenario extends Scenario{
+public class DataIOScenario extends Scenario{
     
     private static int step1Ticker = 0;
     private static int step2Ticker = 0;
+    private static int finalResult = 0;
     
-    static class Step1 implements StepBody {
+    public class MyData {    
+        public int value1;
+        public int value2;
+        public int value3;
+    }
+    
+    static class AddNumbers implements StepBody {
+
+        public int number1;
+        public int number2;
+        public int answer;
+
         @Override
         public ExecutionResult run(StepExecutionContext context) {
             step1Ticker++;
+            answer = number1 + number2;
             return ExecutionResult.next();
-        }
+        }    
     }
     
-    static class Step2 implements StepBody {
+    static class GetResult implements StepBody {
+        
+        public int result;
+        
         @Override
         public ExecutionResult run(StepExecutionContext context) {
             step2Ticker++;
+            finalResult = result;
             return ExecutionResult.next();
         }
     }
     
-    class BasicWorkflow implements Workflow {
+    class BasicWorkflow implements Workflow<MyData> {
 
         @Override
         public String getId() {
@@ -50,19 +66,27 @@ public class BasicWorkflowScenario extends Scenario{
         }
 
         @Override
-        public void build(WorkflowBuilder builder) {
+        public void build(WorkflowBuilder<MyData> builder) {
             builder
-                .startsWith(Step1.class)
-                .then(Step2.class);
+                .startsWith(AddNumbers.class)
+                    .input((step, data) -> step.number1 = data.value1)
+                    .input((step, data) -> step.number2 = data.value2)
+                    .output((step, data) -> data.value3 = step.answer)
+                .then(GetResult.class)
+                    .input((step, data) -> step.result = data.value3);
         }
     }
 
     @Test
     public void test() throws Exception {
-        WorkflowInstance result = runWorkflow(new BasicWorkflow(), null);
+        MyData data = new MyData();
+        data.value1 = 2;
+        data.value2 = 3;
+        WorkflowInstance result = runWorkflow(new BasicWorkflow(), data);
         
         assertEquals(WorkflowStatus.COMPLETE, result.getStatus());
         assertEquals(1, step1Ticker);
         assertEquals(1, step2Ticker);        
+        assertEquals(5, finalResult);
     }    
 }

@@ -1,13 +1,14 @@
-package net.jworkflow.sample04.steps;
+package net.jworkflow.sample05.steps;
 
 import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.models.*;
 
-public class Hello implements StepBody {
+public class Goodbye implements StepBody {
 
     @Override
     public ExecutionResult run(StepExecutionContext context) {
-        System.out.println("Hello there");
+        System.out.println("Goodbye world");
         return ExecutionResult.next();
-    }    
+    }
+    
 }

@@ -26,6 +26,12 @@ public interface StepBuilder<TData, TStep extends StepBody> {
 
     StepBuilder<TData, TStep> output(StepFieldConsumer<TStep, TData> consumer);
 
+    /**
+     * Specify the next step in the workflow
+     * @param <TNewStep>
+     * @param stepClass
+     * @return 
+     */
     <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass);
 
     <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, StepBuilderConsumer stepSetup);

@@ -1,6 +1,5 @@
-package net.jworkflow.sample04;
+package net.jworkflow.sample05;
 
-import java.util.Arrays;
 import net.jworkflow.kernel.interfaces.WorkflowHost;
 import net.jworkflow.kernel.services.WorkflowModule;
 import java.util.Scanner;
@@ -15,14 +14,14 @@ public class Main {
         WorkflowModule.setup();
         WorkflowHost host = WorkflowModule.getHost();
                 
-        host.registerWorkflow(ForeachWorkflow.class);
+        host.registerWorkflow(WhileWorkflow.class);
         
         host.start();
         
         MyData data = new MyData();
-        data.value1 = new String[] {"data item 1", "data item 2"};
+        data.value1 = 0;
         
-        String id = host.startWorkflow("foreach-sample", 1, data);
+        String id = host.startWorkflow("while-sample", 1, data);
         System.out.println("started workflow " + id);
         
         
