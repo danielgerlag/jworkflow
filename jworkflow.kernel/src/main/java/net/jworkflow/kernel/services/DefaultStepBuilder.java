@@ -5,11 +5,15 @@ import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.models.*;
 import net.jworkflow.kernel.interfaces.*;
 import java.time.Duration;
+import java.util.AbstractCollection;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import net.jworkflow.kernel.steps.Foreach;
+import net.jworkflow.kernel.steps.ForeachStep;
 
-public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep> {
+public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep>, ControlStepBuilder<TData, TStep> {
     
     
     private final WorkflowBuilder workflowBuilder;
@@ -69,7 +73,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     @Override
     public StepBuilder<TData, WorkflowStepInline.InlineBody> then(StepExecutionConsumer body) {                
         WorkflowStepInline newStep = new WorkflowStepInline(body);        
-        workflowBuilder.addStep(newStep);        
+        workflowBuilder.addStep(newStep);
         StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new DefaultStepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);        
         step.addOutcome(newStep.getId(), null);        
         
@@ -129,4 +133,24 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         step.setRetryInterval(retryInterval);
         return this;
     }
+    
+    @Override
+    public ControlStepBuilder<TData, Foreach> foreach(Function<TData, AbstractCollection> collection) {
+        ForeachStep newStep = new ForeachStep();
+        newStep.collection = (Function<Object, AbstractCollection>) collection;
+        workflowBuilder.addStep(newStep);        
+        
+        ControlStepBuilder<TData, Foreach> stepBuilder = new DefaultStepBuilder<>(dataClass, Foreach.class, workflowBuilder, newStep);        
+        step.addOutcome(newStep.getId(), null);        
+        
+        return stepBuilder;
+    }
+    
+    @Override
+    public StepBuilder<TData, TStep> run(Consumer<WorkflowBuilder<TData>> consumer) {
+        consumer.accept(workflowBuilder);
+        step.addChild(step.getId() + 1); //TODO: make more elegant
+        return this;
+    }
+    
 }

@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 
 @Singleton
 public class WorkflowRegistryImpl implements WorkflowRegistry{
@@ -59,8 +60,8 @@ public class WorkflowRegistryImpl implements WorkflowRegistry{
         //if (registry.containsKey(key))
         //    throw new Exception("already registered");
         
-        WorkflowBuilder baseBuilder = new WorkflowBuilder();
-        TypedWorkflowBuilder builder = baseBuilder.UseData(workflow.getDataType());        
+        BaseWorkflowBuilder baseBuilder = new BaseWorkflowBuilder();
+        WorkflowBuilder builder = baseBuilder.UseData(workflow.getDataType());        
         
         workflow.build(builder);
         WorkflowDefinition def = builder.build(workflow.getId(), workflow.getVersion());

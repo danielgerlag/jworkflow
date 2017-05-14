@@ -3,8 +3,7 @@ package net.jworkflow.sample03;
 import net.jworkflow.sample03.steps.Hello;
 import net.jworkflow.sample03.steps.DisplayAnswer;
 import net.jworkflow.kernel.interfaces.Workflow;
-import net.jworkflow.kernel.services.TypedWorkflowBuilder;
-import java.util.Date;
+import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 
 public class EventsWorkflow implements Workflow<MyData> {
 
@@ -24,7 +23,7 @@ public class EventsWorkflow implements Workflow<MyData> {
     }
 
     @Override
-    public void build(TypedWorkflowBuilder<MyData> builder) {
+    public void build(WorkflowBuilder<MyData> builder) {
         
         builder
                 .StartsWith(Hello.class)

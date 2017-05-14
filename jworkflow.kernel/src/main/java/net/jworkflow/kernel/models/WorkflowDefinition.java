@@ -8,7 +8,6 @@ public final class WorkflowDefinition {
     private String id;
     private int version;
     private String description;
-    private int initialStep;
     private List<WorkflowStep> steps;
     private Class dataType;
 
@@ -40,15 +39,7 @@ public final class WorkflowDefinition {
     public void setDescription(String description) {
         this.description = description;
     }
-
-    public int getInitialStep() {
-        return initialStep;
-    }
-
-    public void setInitialStep(int initialStep) {
-        this.initialStep = initialStep;
-    }
-
+    
     public List<WorkflowStep> getSteps() {
         return steps;
     }

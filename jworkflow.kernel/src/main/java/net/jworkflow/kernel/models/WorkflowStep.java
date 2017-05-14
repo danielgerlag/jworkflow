@@ -5,6 +5,7 @@ import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.interfaces.StepFieldConsumer;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class WorkflowStep {
@@ -167,8 +168,12 @@ public class WorkflowStep {
     /**
      * @return the children
      */
-    public List<Integer> getChildren() {
+    public Collection<Integer> getChildren() {
         return children;
+    }
+    
+    public void addChild(Integer child) {
+        children.add(child);
     }
 
     /**

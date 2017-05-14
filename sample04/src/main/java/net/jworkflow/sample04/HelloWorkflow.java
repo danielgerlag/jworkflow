@@ -1,10 +1,9 @@
-package net.jworkflow.sample01;
+package net.jworkflow.sample04;
 
-import net.jworkflow.sample01.steps.Goodbye;
-import net.jworkflow.sample01.steps.Hello;
+import net.jworkflow.sample04.steps.Goodbye;
+import net.jworkflow.sample04.steps.Hello;
 import net.jworkflow.kernel.interfaces.*;
 import net.jworkflow.kernel.models.ExecutionResult;
-import net.jworkflow.kernel.services.*;
 
 public class HelloWorkflow implements Workflow {
 
@@ -29,8 +28,10 @@ public class HelloWorkflow implements Workflow {
         builder.StartsWith(Hello.class)
                 .then(context -> { 
                     return ExecutionResult.next(); 
-                })                
-                .then(Goodbye.class);
+                })             
+                .foreach(data -> new String[]{"blah", "hey", "yo"});
+                    //.run(x -> x.)
+                //.then(Goodbye.class);
         
     }    
 }

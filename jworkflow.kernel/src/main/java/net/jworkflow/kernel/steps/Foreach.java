@@ -3,6 +3,7 @@ package net.jworkflow.kernel.steps;
 import java.util.AbstractCollection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.models.ControlStepData;
 import net.jworkflow.kernel.models.ExecutionPointer;
@@ -11,13 +12,14 @@ import net.jworkflow.kernel.models.StepExecutionContext;
 
 public class Foreach implements StepBody {
 
-    public AbstractCollection collection;
+    public Function<Object, AbstractCollection> collection;
     
     @Override
     public ExecutionResult run(StepExecutionContext context) {
         
-        if (context.getPersistenceData() == null) {
-            return ExecutionResult.branch(collection, new ControlStepData(true));
+        if (context.getPersistenceData() == null) {            
+            AbstractCollection resolvedCollection = collection.apply(context.getWorkflow().getData());            
+            return ExecutionResult.branch(resolvedCollection, new ControlStepData(true));
         }
 
         if (context.getPersistenceData() instanceof ControlStepData) {

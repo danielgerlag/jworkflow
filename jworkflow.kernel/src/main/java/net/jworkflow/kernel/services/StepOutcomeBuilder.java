@@ -4,6 +4,7 @@ import net.jworkflow.kernel.interfaces.StepBody;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import net.jworkflow.kernel.interfaces.StepBuilder;
+import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 
 
 public class StepOutcomeBuilder<TData> {

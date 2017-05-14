@@ -6,10 +6,10 @@ import net.jworkflow.kernel.models.ExecutionResult;
 import net.jworkflow.kernel.models.StepExecutionContext;
 import net.jworkflow.kernel.models.WorkflowInstance;
 import net.jworkflow.kernel.models.WorkflowStatus;
-import net.jworkflow.kernel.services.TypedWorkflowBuilder;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 
 public class BasicWorkflowScenario extends Scenario{
     
@@ -50,7 +50,7 @@ public class BasicWorkflowScenario extends Scenario{
         }
 
         @Override
-        public void build(TypedWorkflowBuilder builder) {
+        public void build(WorkflowBuilder builder) {
             builder.StartsWith(Step1.class)
                     .then(Step2.class);
 

@@ -23,7 +23,7 @@ public class DataWorkflow implements Workflow<MyData> {
     }
 
     @Override
-    public void build(TypedWorkflowBuilder<MyData> builder) {
+    public void build(WorkflowBuilder<MyData> builder) {
         
         builder
                 .StartsWith(AddNumbers.class)  
