@@ -131,33 +131,7 @@ public class WorkflowHostImpl implements WorkflowHost {
     @Override
     public void registerWorkflow(Workflow workflow) throws Exception {        
         registry.registerWorkflow(workflow);
-    }
-    
-    @Override
-    public void subscribeEvent(String workflowId, int stepId, String eventName, String eventKey, Date asOfUtc) {
-        logger.log(Level.INFO, String.format("Subscribing to event %s %s for workflow %s step %s", eventName, eventKey, workflowId, stepId));
-        EventSubscription subscription = new EventSubscription();
-        subscription.workflowId = workflowId;
-        subscription.stepId = stepId;
-        subscription.eventName = eventName;
-        subscription.eventKey = eventKey;
-        subscription.subscribeAsOfUtc = asOfUtc;
-
-        persistenceProvider.createEventSubscription(subscription);
-        Iterable<String> events = persistenceProvider.getEvents(eventName, eventKey, asOfUtc);
-        for (String evt: events) {            
-            persistenceProvider.markEventUnprocessed(evt);
-            Callable queueTask = Executors.callable(() -> {
-                try {
-                    Thread.sleep(500);
-                    queueProvider.queueForProcessing(QueueType.EVENT, evt);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(WorkflowHostImpl.class.getName()).log(Level.SEVERE, null, ex);
-                }               
-            });
-           Executors.newSingleThreadExecutor().submit(queueTask);           
-        }
-    }
+    }        
     
     @Override
     public void publishEvent(String eventName, String eventKey, Object eventData, Date effectiveDateUtc) throws Exception {

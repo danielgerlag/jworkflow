@@ -8,7 +8,7 @@ import net.jworkflow.kernel.models.ErrorBehavior;
 import net.jworkflow.kernel.steps.SubscriptionStepBody;
 import net.jworkflow.kernel.models.WorkflowStep;
 import net.jworkflow.kernel.models.WorkflowStepInline;
-import net.jworkflow.kernel.services.StepOutcomeBuilder;
+import net.jworkflow.kernel.services.DefaultStepOutcomeBuilder;
 import net.jworkflow.kernel.steps.Foreach;
 import net.jworkflow.kernel.steps.While;
 

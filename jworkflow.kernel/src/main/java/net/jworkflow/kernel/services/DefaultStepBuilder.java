@@ -87,7 +87,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         StepOutcome result = new StepOutcome();
         result.setValue(value);
         step.addOutcome(result);
-        StepOutcomeBuilder<TData> outcomeBuilder = new StepOutcomeBuilder<>(dataClass, workflowBuilder, result);
+        StepOutcomeBuilder<TData> outcomeBuilder = new DefaultStepOutcomeBuilder<>(dataClass, workflowBuilder, result);
         
         return outcomeBuilder;
     }

@@ -7,8 +7,7 @@ public interface WorkflowHost {
     void start();
     void stop();
     void registerWorkflow(Class<? extends Workflow> workflow) throws Exception;
-    void registerWorkflow(Workflow workflow) throws Exception;
-    void subscribeEvent(String workflowId, int stepId, String eventName, String eventKey, Date asOfUtc);
+    void registerWorkflow(Workflow workflow) throws Exception;    
     void publishEvent(String eventName, String eventKey, Object eventData, Date effectiveDateUtc) throws Exception;
     boolean suspendWorkflow(String workflowId);
     boolean resumeWorkflow(String workflowId);
