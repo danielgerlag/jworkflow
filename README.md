@@ -21,7 +21,7 @@ Add `jworkflow` to your POM file as a dependency.
 
 ### Using Gradle
 
-```json
+```Gradle
 dependencies { 
     compile 'net.jworkflow:jworkflow:0.1'
 }

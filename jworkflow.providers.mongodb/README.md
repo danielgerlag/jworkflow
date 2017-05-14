@@ -18,7 +18,7 @@ Provides support to persist workflows running on [JWorkflow](../README.md) to a 
 
 ### Using Gradle
 
-```json
+```Gradle
 dependencies { 
     compile 'net.jworkflow:jworkflow.providers.mongodb:0.1'
 }
