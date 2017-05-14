@@ -135,9 +135,9 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     }
     
     @Override
-    public ControlStepBuilder<TData, Foreach> foreach(Function<TData, AbstractCollection> collection) {
-        ForeachStep newStep = new ForeachStep();
-        newStep.collection = (Function<Object, AbstractCollection>) collection;
+    public ControlStepBuilder<TData, Foreach> foreach(Function<TData, Object[]> collection) {
+        ForeachStep<TData> newStep = new ForeachStep<>();
+        newStep.collection = collection;
         workflowBuilder.addStep(newStep);        
         
         ControlStepBuilder<TData, Foreach> stepBuilder = new DefaultStepBuilder<>(dataClass, Foreach.class, workflowBuilder, newStep);        
@@ -147,7 +147,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     }
     
     @Override
-    public StepBuilder<TData, TStep> run(Consumer<WorkflowBuilder<TData>> consumer) {
+    public StepBuilder<TData, TStep> run(WorkflowBuilderConsumer<TData> consumer) {
         consumer.accept(workflowBuilder);
         step.addChild(step.getId() + 1); //TODO: make more elegant
         return this;

@@ -39,6 +39,6 @@ public interface StepBuilder<TData, TStep extends StepBody> {
 
     StepOutcomeBuilder<TData> when(Object value);
     
-    ControlStepBuilder<TData, Foreach> foreach(Function<TData, AbstractCollection> collection);
+    ControlStepBuilder<TData, Foreach> foreach(Function<TData, Object[]> collection);
     
 }

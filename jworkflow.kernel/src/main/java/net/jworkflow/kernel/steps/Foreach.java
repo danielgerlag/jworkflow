@@ -12,13 +12,13 @@ import net.jworkflow.kernel.models.StepExecutionContext;
 
 public class Foreach implements StepBody {
 
-    public Function<Object, AbstractCollection> collection;
+    public Function<Object, Object[]> collection;
     
     @Override
     public ExecutionResult run(StepExecutionContext context) {
         
         if (context.getPersistenceData() == null) {            
-            AbstractCollection resolvedCollection = collection.apply(context.getWorkflow().getData());            
+            Object[] resolvedCollection = collection.apply(context.getWorkflow().getData());            
             return ExecutionResult.branch(resolvedCollection, new ControlStepData(true));
         }
 

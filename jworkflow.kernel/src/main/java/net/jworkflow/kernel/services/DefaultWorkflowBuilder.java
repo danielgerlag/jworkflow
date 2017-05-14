@@ -27,7 +27,7 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
     
     
     @Override
-    public <TStep extends StepBody> StepBuilder<TData, TStep> StartsWith(Class<TStep> stepClass) {        
+    public <TStep extends StepBody> StepBuilder<TData, TStep> startsWith(Class<TStep> stepClass) {        
         return startsWith(stepClass, null);        
     }
     

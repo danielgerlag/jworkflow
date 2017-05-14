@@ -16,7 +16,7 @@ import net.jworkflow.kernel.models.WorkflowStep;
 
 public class ForeachStep<TData> extends WorkflowStep {
     
-    public Function<TData, AbstractCollection> collection;
+    public Function<TData, Object[]> collection;
 
     @Override
     public StepBody constructBody(Injector injector) throws InstantiationException, IllegalAccessException {
@@ -35,7 +35,7 @@ public class ForeachStep<TData> extends WorkflowStep {
         
         if (body instanceof Foreach) {
             Foreach feBody = (Foreach)body;
-            feBody.collection = (Function<Object, AbstractCollection>) collection;
+            feBody.collection = (Function<Object, Object[]>) collection;
         }                
 
         return ExecutionPipelineResult.NEXT;

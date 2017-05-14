@@ -7,7 +7,7 @@ public class Hello implements StepBody {
 
     @Override
     public ExecutionResult run(StepExecutionContext context) {
-        System.out.println("Hello world");
+        System.out.println("Hello world " + context.getItem());
         return ExecutionResult.next();
     }    
 }

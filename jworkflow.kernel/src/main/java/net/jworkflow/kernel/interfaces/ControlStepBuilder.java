@@ -5,6 +5,6 @@ import java.util.function.Consumer;
 
 public interface ControlStepBuilder<TData, TStep extends StepBody> {
 
-    StepBuilder<TData, TStep> run(Consumer<WorkflowBuilder<TData>> consumer);
+    StepBuilder<TData, TStep> run(WorkflowBuilderConsumer<TData> consumer);
     
 }

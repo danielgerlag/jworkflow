@@ -182,7 +182,7 @@ A workflow can also wait for an external event before proceeding.  In the follow
 ```java
 public void build(TypedWorkflowBuilder<MyData> builder) {    
     builder
-        .StartsWith(Hello.class)
+        .startsWith(Hello.class)
         .waitFor("myEvent", x -> "0")
             .output((step, data) -> data.value1 = step.eventData)
         .then(DisplayAnswer.class)

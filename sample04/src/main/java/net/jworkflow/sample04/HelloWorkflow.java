@@ -1,11 +1,15 @@
 package net.jworkflow.sample04;
 
+import com.mongodb.client.model.Collation;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import net.jworkflow.sample04.steps.Goodbye;
 import net.jworkflow.sample04.steps.Hello;
 import net.jworkflow.kernel.interfaces.*;
 import net.jworkflow.kernel.models.ExecutionResult;
 
-public class HelloWorkflow implements Workflow {
+public class HelloWorkflow implements Workflow<MyData> {
 
     @Override
     public String getId() {
@@ -23,15 +27,15 @@ public class HelloWorkflow implements Workflow {
     }
 
     @Override
-    public void build(WorkflowBuilder builder) {
+    public void build(WorkflowBuilder<MyData> builder) {
         
-        builder.StartsWith(Hello.class)
-                .then(context -> { 
-                    return ExecutionResult.next(); 
-                })             
-                .foreach(data -> new String[]{"blah", "hey", "yo"});
-                    //.run(x -> x.)
-                //.then(Goodbye.class);
+        
+        builder.startsWith(Hello.class)                          
+                .foreach(data -> data.value1)
+                    .run(each -> each.startsWith(Hello.class))
+                .then(Goodbye.class);
+                
+                //x.startWith(Hello.class)
         
     }    
 }

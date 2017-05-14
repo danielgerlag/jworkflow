@@ -18,8 +18,7 @@ public class While implements StepBody {
         
         if (context.getPersistenceData() == null) {
             if (conditionResult) {
-                ArrayList<Object> defaultList = new ArrayList<>();
-                defaultList.add(null);                
+                Object[] defaultList = new Object[]{null};
                 return ExecutionResult.branch(defaultList, new ControlStepData(true));
             }
             else

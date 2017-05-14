@@ -1,5 +1,6 @@
 package net.jworkflow.sample04;
 
+import java.util.Arrays;
 import net.jworkflow.kernel.interfaces.WorkflowHost;
 import net.jworkflow.kernel.services.WorkflowModule;
 import java.util.Scanner;
@@ -18,7 +19,10 @@ public class Main {
         
         host.start();
         
-        String id = host.startWorkflow("hello", 1, null);
+        MyData data = new MyData();
+        data.value1 = new String[] {"abc", "def"};
+        
+        String id = host.startWorkflow("hello", 1, data);
         System.out.println("started workflow " + id);
         
         

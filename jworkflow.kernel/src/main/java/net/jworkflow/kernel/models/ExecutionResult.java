@@ -1,16 +1,13 @@
 package net.jworkflow.kernel.models;
 
 import java.time.Duration;
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ExecutionResult {
     private boolean proceed;
     private Object outcomeValue;
     private Duration sleepFor;
     private Object persistenceData;
-    private AbstractCollection branches = new ArrayList<>(); 
+    private Object[] branches = new Object[]{}; 
 
     public static ExecutionResult next() {
         ExecutionResult result = new ExecutionResult();
@@ -34,7 +31,7 @@ public class ExecutionResult {
         return result;
     }
     
-    public static ExecutionResult branch(AbstractCollection branches, Object persistenceData) {
+    public static ExecutionResult branch(Object[] branches, Object persistenceData) {
         ExecutionResult result = new ExecutionResult();
         result.setProceed(false);
         result.setPersistenceData(persistenceData);
@@ -101,14 +98,14 @@ public class ExecutionResult {
     /**
      * @return the branches
      */
-    public AbstractCollection getBranches() {
+    public Object[] getBranches() {
         return branches;
     }
 
     /**
      * @param branches the branches to set
      */
-    public void setBranches(AbstractCollection branches) {
+    public void setBranches(Object[] branches) {
         this.branches = branches;
     }
 }

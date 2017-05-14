@@ -51,7 +51,7 @@ public class BasicWorkflowScenario extends Scenario{
 
         @Override
         public void build(WorkflowBuilder builder) {
-            builder.StartsWith(Step1.class)
+            builder.startsWith(Step1.class)
                     .then(Step2.class);
 
         }

@@ -26,7 +26,7 @@ public class DataWorkflow implements Workflow<MyData> {
     public void build(WorkflowBuilder<MyData> builder) {
         
         builder
-                .StartsWith(AddNumbers.class)  
+                .startsWith(AddNumbers.class)  
                     .input((step, data) -> step.number1 = data.value1)
                     .input((step, data) -> step.number2 = data.value2)
                     .output((step, data) -> data.value3 = step.answer)
