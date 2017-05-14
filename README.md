@@ -3,6 +3,30 @@
 
 JWorkflow is a light weight workflow library for Java.  It supports pluggable persistence and concurrency providers to allow for multi-node clusters.
 
+## Installing
+
+### Using Maven
+
+Add `jworkflow` to your POM file as a dependency.
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>net.jworkflow</groupId>
+        <artifactId>jworkflow</artifactId>
+        <version>0.1</version>
+    </dependency>
+</dependencies>
+```
+
+### Using Gradle
+
+```json
+dependencies { 
+    compile 'net.jworkflow:jworkflow:0.1'
+}
+```
+
 
 ## Basic Concepts
 

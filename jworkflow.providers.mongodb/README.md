@@ -2,6 +2,29 @@
 
 Provides support to persist workflows running on [JWorkflow](../README.md) to a MongoDB database.
 
+## Installing
+
+### Using Maven
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>net.jworkflow</groupId>
+        <artifactId>jworkflow.providers.mongodb</artifactId>
+        <version>0.1</version>
+    </dependency>
+</dependencies>
+```
+
+### Using Gradle
+
+```json
+dependencies { 
+    compile 'net.jworkflow:jworkflow.providers.mongodb:0.1'
+}
+```
+
+
 ## Usage
 
 Use the MongoPersistenceService.configure static method when bootstraping your application.
