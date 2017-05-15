@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import net.jworkflow.kernel.steps.Foreach;
 import net.jworkflow.kernel.steps.ForeachStep;
+import net.jworkflow.kernel.steps.If;
+import net.jworkflow.kernel.steps.IfStep;
 import net.jworkflow.kernel.steps.While;
 import net.jworkflow.kernel.steps.WhileStep;
 
@@ -83,13 +85,14 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     }
     
     @Override
-    public StepOutcomeBuilder<TData> when(Object value) {
+    public StepBuilder<TData, TStep> when(Object value, WorkflowBuilderConsumer<TData> branch) {
         StepOutcome result = new StepOutcome();
         result.setValue(value);
-        step.addOutcome(result);
-        StepOutcomeBuilder<TData> outcomeBuilder = new DefaultStepOutcomeBuilder<>(dataClass, workflowBuilder, result);
+        step.addOutcome(result);        
+        branch.accept(workflowBuilder);
+        result.setNextStep(step.getId() + 1); //TODO: make more elegant       
         
-        return outcomeBuilder;
+        return this;
     }
     
     @Override
@@ -157,7 +160,17 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     }
     
     @Override
-    public StepBuilder<TData, TStep> run(WorkflowBuilderConsumer<TData> consumer) {
+    public ControlStepBuilder<TData, If> If(Function<TData, Boolean> condition) {
+        IfStep<TData> newStep = new IfStep<>();
+        newStep.condition = condition;
+        workflowBuilder.addStep(newStep);        
+        ControlStepBuilder<TData, If> stepBuilder = new DefaultStepBuilder<>(dataClass, If.class, workflowBuilder, newStep);        
+        step.addOutcome(newStep.getId(), null);        
+        return stepBuilder;
+    }
+    
+    @Override
+    public StepBuilder<TData, TStep> Do(WorkflowBuilderConsumer<TData> consumer) {
         consumer.accept(workflowBuilder);
         step.addChild(step.getId() + 1); //TODO: make more elegant
         return this;

@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Singleton
-public class WorkflowHostImpl implements WorkflowHost {
+public class DefaultWorkflowHost implements WorkflowHost {
     
     private boolean active;
     private final PersistenceService persistenceProvider;
@@ -45,7 +45,7 @@ public class WorkflowHostImpl implements WorkflowHost {
     private ScheduledFuture pollFuture;
     
     @Inject
-    public WorkflowHostImpl(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, Injector injector, Logger logger) {
+    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, Injector injector, Logger logger) {
         
         Runtime runtime = Runtime.getRuntime();
         

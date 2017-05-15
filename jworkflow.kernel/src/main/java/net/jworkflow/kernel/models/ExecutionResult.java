@@ -16,6 +16,13 @@ public class ExecutionResult {
         return result;
     }
     
+    public static ExecutionResult outcome(Object value) {
+        ExecutionResult result = new ExecutionResult();
+        result.setProceed(true);
+        result.setOutcomeValue(value);
+        return result;
+    }
+    
     public static ExecutionResult sleep(Duration duration, Object persistenceData) {
         ExecutionResult result = new ExecutionResult();
         result.setProceed(false);

@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.jworkflow.kernel.models.WorkflowExecutorResult;
 
-public class WorkflowExecutorImpl implements WorkflowExecutor {
+public class DefaultWorkflowExecutor implements WorkflowExecutor {
 
     
     private final WorkflowRegistry registry;
@@ -30,7 +30,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
     private final Injector injector;
     
     @Inject
-    public WorkflowExecutorImpl(WorkflowRegistry registry, Logger logger, Injector injector) {
+    public DefaultWorkflowExecutor(WorkflowRegistry registry, Logger logger, Injector injector) {
         this.registry = registry;
         this.logger = logger;
         this.injector = injector;
@@ -92,7 +92,7 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
                     step.get().afterExecute(wfResult, context, result, pointer);
                 
                 } catch (Exception ex) {
-                    Logger.getLogger(WorkflowExecutorImpl.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DefaultWorkflowExecutor.class.getName()).log(Level.SEVERE, null, ex);
                     
                     switch (step.get().getRetryBehavior()) {
                         case RETRY:
@@ -135,7 +135,9 @@ public class WorkflowExecutorImpl implements WorkflowExecutor {
             pointer.sleepFor = null;
             pointer.endTimeUtc = Date.from(Instant.now());
             
-            StepOutcome[] outcomes = step.get().getOutcomes().stream().filter(x -> x.getValue() == result.getOutcomeValue()).toArray(StepOutcome[]::new);
+            StepOutcome[] outcomes = step.get().getOutcomes().stream()
+                    .filter(x -> x.getValue() == result.getOutcomeValue())
+                    .toArray(StepOutcome[]::new);
             
             for (StepOutcome outcome : outcomes) {
                 

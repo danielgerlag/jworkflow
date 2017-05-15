@@ -26,9 +26,9 @@ public class WorkflowModule extends AbstractModule {
     
     @Override 
     protected void configure() {        
-      bind(WorkflowHost.class).to(WorkflowHostImpl.class);
-      bind(WorkflowExecutor.class).to(WorkflowExecutorImpl.class);
-      bind(WorkflowRegistry.class).to(WorkflowRegistryImpl.class);
+      bind(WorkflowHost.class).to(DefaultWorkflowHost.class);
+      bind(WorkflowExecutor.class).to(DefaultWorkflowExecutor.class);
+      bind(WorkflowRegistry.class).to(DefaultWorkflowRegistry.class);
       
       //
       bind(PersistenceService.class).toProvider(persistenceProvider);

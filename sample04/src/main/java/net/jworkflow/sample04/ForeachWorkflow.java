@@ -26,11 +26,11 @@ public class ForeachWorkflow implements Workflow<MyData> {
         builder
             .startsWith(Hello.class)                          
             .foreach(data -> data.value1)
-                .run(each -> each
+                .Do(each -> each
                     .startsWith(DoSomething.class))
             .then(Hello.class)
             .foreach(data -> new String[] { "item 1", "item 2", "item 3" })
-                .run(each -> each
+                .Do(each -> each
                     .startsWith(DoSomething.class))
             .then(Goodbye.class);        
     }    

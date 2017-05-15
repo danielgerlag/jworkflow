@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 
 @Singleton
-public class WorkflowRegistryImpl implements WorkflowRegistry{
+public class DefaultWorkflowRegistry implements WorkflowRegistry{
         
     class RegistryEntry {
         private final String id;
@@ -49,7 +49,7 @@ public class WorkflowRegistryImpl implements WorkflowRegistry{
     private final Logger logger;
     
     @Inject
-    public WorkflowRegistryImpl(Logger logger) {
+    public DefaultWorkflowRegistry(Logger logger) {
         this.registry = new ArrayList<>();
         this.logger = logger;
     }

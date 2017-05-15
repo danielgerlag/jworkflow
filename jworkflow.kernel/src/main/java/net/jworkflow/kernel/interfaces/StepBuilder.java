@@ -1,16 +1,11 @@
 package net.jworkflow.kernel.interfaces;
 
 import java.time.Duration;
-import java.util.AbstractCollection;
 import java.util.Date;
 import java.util.function.Function;
 import net.jworkflow.kernel.models.ErrorBehavior;
-import net.jworkflow.kernel.steps.SubscriptionStepBody;
-import net.jworkflow.kernel.models.WorkflowStep;
-import net.jworkflow.kernel.models.WorkflowStepInline;
-import net.jworkflow.kernel.services.DefaultStepOutcomeBuilder;
-import net.jworkflow.kernel.steps.Foreach;
-import net.jworkflow.kernel.steps.While;
+import net.jworkflow.kernel.models.*;
+import net.jworkflow.kernel.steps.*;
 
 public interface StepBuilder<TData, TStep extends StepBody> {
 
@@ -44,10 +39,12 @@ public interface StepBuilder<TData, TStep extends StepBody> {
 
     StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey);
 
-    StepOutcomeBuilder<TData> when(Object value);
+    StepBuilder<TData, TStep> when(Object value, WorkflowBuilderConsumer<TData> branch);
     
     ControlStepBuilder<TData, Foreach> foreach(Function<TData, Object[]> collection);
     
     ControlStepBuilder<TData, While> While(Function<TData, Boolean> condition);
+    
+    ControlStepBuilder<TData, If> If(Function<TData, Boolean> condition);
     
 }
