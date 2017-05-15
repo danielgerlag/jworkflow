@@ -14,7 +14,7 @@ Add `jworkflow` to your POM file as a dependency.
     <dependency>
         <groupId>net.jworkflow</groupId>
         <artifactId>jworkflow</artifactId>
-        <version>0.1</version>
+        <version>0.2</version>
     </dependency>
 </dependencies>
 ```
@@ -23,7 +23,7 @@ Add `jworkflow` to your POM file as a dependency.
 
 ```Gradle
 dependencies { 
-    compile 'net.jworkflow:jworkflow:0.1'
+    compile 'net.jworkflow:jworkflow:0.2'
 }
 ```
 
