@@ -23,14 +23,12 @@ public class EventsWorkflow implements Workflow<MyData> {
     }
 
     @Override
-    public void build(WorkflowBuilder<MyData> builder) {
-        
+    public void build(WorkflowBuilder<MyData> builder) {        
         builder
-                .startsWith(Hello.class)
-                .waitFor("myEvent", x -> "1")
-                    .output((step, data) -> data.value1 = step.eventData)
-                .then(DisplayAnswer.class)
-                    .input((step, data) -> step.answer = data.value1);
-    }
-    
+            .startsWith(Hello.class)
+            .waitFor("myEvent", x -> "1")
+                .output((step, data) -> data.value1 = step.eventData)
+            .then(DisplayAnswer.class)
+                .input((step, data) -> step.answer = data.value1);
+    }    
 }

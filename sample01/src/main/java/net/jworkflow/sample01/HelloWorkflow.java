@@ -3,7 +3,6 @@ package net.jworkflow.sample01;
 import net.jworkflow.sample01.steps.Goodbye;
 import net.jworkflow.sample01.steps.Hello;
 import net.jworkflow.kernel.interfaces.*;
-import net.jworkflow.kernel.models.ExecutionResult;
 
 public class HelloWorkflow implements Workflow {
 
@@ -24,14 +23,8 @@ public class HelloWorkflow implements Workflow {
 
     @Override
     public void build(WorkflowBuilder builder) {
-        
         builder
-            .startsWith(Hello.class)                
-            .then(context -> { 
-                System.out.println("Doing something inline...");
-                return ExecutionResult.next(); 
-            })                
-            .then(Goodbye.class);
-        
+            .startsWith(Hello.class)
+            .then(Goodbye.class);        
     }
 }
