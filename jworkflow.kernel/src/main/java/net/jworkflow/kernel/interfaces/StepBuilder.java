@@ -15,10 +15,10 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      * Map properties on the step to properties on the workflow data object before the step executes
      * @param consumer
      * A consumer the injects the workflow data and step objects as parameters
-     * (step, data) -> ...
+     * {@literal (step, data) -> ...}
      * 
      * map your step properties to workflow data, eg.
-     * (step, data) -> step.number1 = data.value1
+     * {@literal (step, data) -> step.number1 = data.value1}
      * @return 
      */
     StepBuilder<TData, TStep> input(StepFieldConsumer<TStep, TData> consumer);
@@ -50,10 +50,10 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      * Map properties on the workflow data object to properties on the step after the step executes
      * @param consumer
      * A consumer the injects the workflow data and step objects as parameters
-     * (step, data) -> ...
+     * {@literal (step, data) -> ...}
      * 
      * map your step properties to workflow data, eg.
-     * (step, data) -> step.value1 = data.value1
+     * {@literal (step, data) -> step.value1 = data.value1}
      * @return 
      */
     StepBuilder<TData, TStep> output(StepFieldConsumer<TStep, TData> consumer);
@@ -115,10 +115,10 @@ public interface StepBuilder<TData, TStep extends StepBody> {
     /**
      * Start a parallel foreach based on the given function which evaluates to an array.
      * For example:
-     * .foreach(data -> new String[] { "item 1", "item 2", "item 3" })
+     * {@literal .foreach(data -> new String[] { "item 1", "item 2", "item 3" })
             .Do(each -> each
                 .startsWith(DoSomething.class))
-        .then(Goodbye.class);
+        .then(Goodbye.class);}
      * @param collection
      * The function that is evaluated to return the collection when the workflow reaches this point
      * @return 
