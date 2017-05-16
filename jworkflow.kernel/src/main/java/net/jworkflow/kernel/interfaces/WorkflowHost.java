@@ -9,6 +9,18 @@ public interface WorkflowHost {
     void registerWorkflow(Class<? extends Workflow> workflow) throws Exception;
     void registerWorkflow(Workflow workflow) throws Exception;    
     void publishEvent(String eventName, String eventKey, Object eventData, Date effectiveDateUtc) throws Exception;
+    
+    /**
+     * Suspend the given workflow, so it will not be executed until resumed
+     * @param workflowId
+     * @return 
+     */
     boolean suspendWorkflow(String workflowId);
+    
+    /**
+     * Resume a previously suspended workflow, so execution can continue
+     * @param workflowId
+     * @return 
+     */
     boolean resumeWorkflow(String workflowId);
 }
