@@ -16,6 +16,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -199,7 +200,7 @@ public class DefaultWorkflowExecutor implements WorkflowExecutor {
         if (workflow.getNextExecution() == null) {
             for (ExecutionPointer pointer : workflow.getExecutionPointers()) { 
                 if ((pointer.active) && (!pointer.children.isEmpty())) {
-                    if (workflow.getExecutionPointers().stream().filter(x -> pointer.children.contains(x.id)).allMatch(x -> x.endTimeUtc != null)) {
+                    if (workflow.getExecutionPointers().stream().filter(x -> pointer.children.contains(x.id)).allMatch(x -> isBranchComplete(workflow.getExecutionPointers(), x.id))) {
                         workflow.setNextExecution((long)0);
                         return;
                     }
@@ -214,4 +215,24 @@ public class DefaultWorkflowExecutor implements WorkflowExecutor {
             }                      
         }        
     }    
+    
+    private boolean isBranchComplete(List<ExecutionPointer> pointers, String rootId) {
+        Optional<ExecutionPointer> root = pointers.stream()
+                .filter(x -> x.id.equals(rootId))
+                .findFirst();
+        
+        if (root.get().endTimeUtc == null)
+            return false;
+
+        ExecutionPointer[] list = pointers.stream()
+                .filter(x -> rootId.equals(x.predecessorId))
+                .toArray(ExecutionPointer[]::new);
+
+        boolean result = true;
+
+        for(ExecutionPointer item:  list)
+            result = result && isBranchComplete(pointers, item.id);
+
+        return result;
+    }
 }
