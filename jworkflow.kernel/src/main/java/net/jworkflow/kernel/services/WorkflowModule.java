@@ -1,16 +1,14 @@
 package net.jworkflow.kernel.services;
 
-import net.jworkflow.kernel.interfaces.WorkflowRegistry;
-import net.jworkflow.kernel.interfaces.WorkflowExecutor;
-import net.jworkflow.kernel.interfaces.LockService;
-import net.jworkflow.kernel.interfaces.QueueService;
-import net.jworkflow.kernel.interfaces.PersistenceService;
-import net.jworkflow.kernel.interfaces.WorkflowHost;
+import net.jworkflow.kernel.interfaces.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.util.Providers;
+import java.time.Clock;
+import net.jworkflow.kernel.services.errorhandlers.*;
 
 public class WorkflowModule extends AbstractModule {  
     
@@ -29,7 +27,16 @@ public class WorkflowModule extends AbstractModule {
       bind(WorkflowHost.class).to(DefaultWorkflowHost.class);
       bind(WorkflowExecutor.class).to(DefaultWorkflowExecutor.class);
       bind(WorkflowRegistry.class).to(DefaultWorkflowRegistry.class);
+      bind(ExecutionPointerFactory.class).to(DefaultExecutionPointerFactory.class);
+      bind(ExecutionResultProcessor.class).to(DefaultExecutionResultProcessor.class);
+      bind(Clock.class).toInstance(Clock.systemUTC());
       
+      Multibinder<StepErrorHandler> errorHandlerBinder = Multibinder.newSetBinder(binder(), StepErrorHandler.class);
+      errorHandlerBinder.addBinding().to(RetryHandler.class);
+      errorHandlerBinder.addBinding().to(CompensateHandler.class);
+      errorHandlerBinder.addBinding().to(SuspendHandler.class);
+      errorHandlerBinder.addBinding().to(TerminateHandler.class);
+                  
       //
       bind(PersistenceService.class).toProvider(persistenceProvider);
       bind(LockService.class).to(SingleNodeLockService.class);

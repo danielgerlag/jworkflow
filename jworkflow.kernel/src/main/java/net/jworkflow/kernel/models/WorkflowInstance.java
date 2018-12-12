@@ -1,8 +1,13 @@
 package net.jworkflow.kernel.models;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class WorkflowInstance {
     
@@ -154,4 +159,40 @@ public class WorkflowInstance {
         this.executionPointers = pointers;
     }
     
+    public boolean isBranchComplete(String rootId) {
+        
+        Optional<ExecutionPointer> root = executionPointers.stream()
+                .filter(x -> x.id.equals(rootId))
+                .findFirst();
+        
+        if (root.get().endTimeUtc == null)
+            return false;
+
+        Collection<ExecutionPointer> seed = executionPointers.stream()
+                .filter(x -> rootId.equals(x.predecessorId))
+                .collect(Collectors.toList());        
+        
+        Queue<ExecutionPointer> queue = new LinkedList<>(seed);
+
+        while (!queue.isEmpty()) {
+            ExecutionPointer item = queue.remove();
+            if (item.endTimeUtc == null) {
+                return false;
+            }
+
+            executionPointers.stream()
+                .filter(x -> item.id.equals(x.predecessorId))
+                .forEach(child -> queue.add(child));
+        }
+
+        return true;        
+    }
+    
+    public ExecutionPointer findExecutionPointer(String pointerId) {
+        for (ExecutionPointer pointer: executionPointers) {
+            if (pointer.id.equals(pointerId))
+                return pointer;
+        }
+        return null;
+    }
 }

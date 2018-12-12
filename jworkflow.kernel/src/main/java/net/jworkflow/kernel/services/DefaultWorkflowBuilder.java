@@ -33,8 +33,7 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
     
     @Override
     public <TStep extends StepBody> StepBuilder<TData, TStep> startsWith(Class<TStep> stepClass, Consumer<StepBuilder<TData, TStep>> stepSetup) {                
-        WorkflowStep step = new WorkflowStep();
-        step.setBodyType(stepClass);     
+        WorkflowStep step = new WorkflowStep(stepClass);
         step.setName(stepClass.getName());
         StepBuilder<TData, TStep> stepBuilder = new DefaultStepBuilder<>(dataType, stepClass, this, step);
                 

@@ -1,6 +1,5 @@
 package net.jworkflow.kernel.services;
-import net.jworkflow.kernel.steps.SubscriptionStepBody;
-import net.jworkflow.kernel.steps.SubscriptionStep;
+import net.jworkflow.kernel.steps.WaitFor;
 import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.models.*;
 import net.jworkflow.kernel.interfaces.*;
@@ -11,11 +10,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import net.jworkflow.kernel.steps.Foreach;
-import net.jworkflow.kernel.steps.ForeachStep;
 import net.jworkflow.kernel.steps.If;
-import net.jworkflow.kernel.steps.IfStep;
 import net.jworkflow.kernel.steps.While;
-import net.jworkflow.kernel.steps.WhileStep;
 
 public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep>, ControlStepBuilder<TData, TStep> {
     
@@ -50,8 +46,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     
     @Override
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, StepBuilderConsumer stepSetup) {
-        WorkflowStep newStep = new WorkflowStep();
-        newStep.setBodyType(stepClass); 
+        WorkflowStep newStep = new WorkflowStep(stepClass);        
         newStep.setName(stepClass.getName());
         
         workflowBuilder.addStep(newStep);
@@ -110,19 +105,23 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     }
     
     @Override
-    public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDateUtc) {
-        SubscriptionStep newStep = new SubscriptionStep();
-        newStep.eventName = eventName;
-        newStep.eventKey = eventKey;
-        newStep.effectiveDate = effectiveDateUtc;        
+    public StepBuilder<TData, WaitFor> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDateUtc) {
+        WorkflowStep newStep = new WorkflowStep(WaitFor.class);
+        StepFieldConsumer<WaitFor, TData> nameConsumer = (step, data) -> step.eventName = eventName;        
+        StepFieldConsumer<WaitFor, TData> keyConsumer = (step, data) -> step.eventKey = eventKey.apply(data);
+        StepFieldConsumer<WaitFor, TData> dateConsumer = (step, data) -> step.effectiveDate = effectiveDateUtc.apply(data);
+        newStep.addInput(nameConsumer);
+        newStep.addInput(keyConsumer);
+        newStep.addInput(dateConsumer);
+        
         workflowBuilder.addStep(newStep);        
-        StepBuilder<TData, SubscriptionStepBody> stepBuilder = new DefaultStepBuilder<>(dataClass, SubscriptionStepBody.class, workflowBuilder, newStep);
+        StepBuilder<TData, WaitFor> stepBuilder = new DefaultStepBuilder<>(dataClass, WaitFor.class, workflowBuilder, newStep);
         step.addOutcome(newStep.getId(), null);
         return stepBuilder;        
     }
     
     @Override
-    public StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey) {
+    public StepBuilder<TData, WaitFor> waitFor(String eventName, Function<TData, String> eventKey) {
         return waitFor(eventName, eventKey, x -> new Date());
     }    
     
@@ -141,8 +140,9 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     
     @Override
     public ControlStepBuilder<TData, Foreach> foreach(Function<TData, Object[]> collection) {
-        ForeachStep<TData> newStep = new ForeachStep<>();
-        newStep.collection = collection;        
+        WorkflowStep newStep = new WorkflowStep(Foreach.class);
+        StepFieldConsumer<Foreach, TData> collectionConsumer = (step, data) -> step.collection = collection.apply(data);                
+        newStep.addInput(collectionConsumer);
         workflowBuilder.addStep(newStep);        
         ControlStepBuilder<TData, Foreach> stepBuilder = new DefaultStepBuilder<>(dataClass, Foreach.class, workflowBuilder, newStep);        
         step.addOutcome(newStep.getId(), null);
@@ -151,8 +151,9 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     
     @Override
     public ControlStepBuilder<TData, While> While(Function<TData, Boolean> condition) {
-        WhileStep<TData> newStep = new WhileStep<>();
-        newStep.condition = condition;
+        WorkflowStep newStep = new WorkflowStep(While.class);
+        StepFieldConsumer<While, TData> conditionConsumer = (step, data) -> step.condition = condition.apply(data);
+        newStep.addInput(conditionConsumer);
         workflowBuilder.addStep(newStep);        
         ControlStepBuilder<TData, While> stepBuilder = new DefaultStepBuilder<>(dataClass, While.class, workflowBuilder, newStep);        
         step.addOutcome(newStep.getId(), null);        
@@ -161,8 +162,9 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     
     @Override
     public ControlStepBuilder<TData, If> If(Function<TData, Boolean> condition) {
-        IfStep<TData> newStep = new IfStep<>();
-        newStep.condition = condition;
+        WorkflowStep newStep = new WorkflowStep(If.class);
+        StepFieldConsumer<If, TData> conditionConsumer = (step, data) -> step.condition = condition.apply(data);
+        newStep.addInput(conditionConsumer);
         workflowBuilder.addStep(newStep);        
         ControlStepBuilder<TData, If> stepBuilder = new DefaultStepBuilder<>(dataClass, If.class, workflowBuilder, newStep);        
         step.addOutcome(newStep.getId(), null);        

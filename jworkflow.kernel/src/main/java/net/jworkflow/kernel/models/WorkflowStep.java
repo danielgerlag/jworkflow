@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class WorkflowStep {
-    private Class bodyType;
+    private Class<StepBody> bodyType;
     private int id;
     private String name;
     private List<StepOutcome> outcomes;
@@ -18,16 +18,18 @@ public class WorkflowStep {
     private List<StepFieldConsumer> outputs;
     private ErrorBehavior retryBehavior;
     private Duration retryInterval;
+    private Integer compensationStepId;
 
-    public WorkflowStep() {
+    public WorkflowStep(Class bodyType) {
         this.outcomes = new ArrayList<>();
         this.inputs = new ArrayList<>();
         this.outputs = new ArrayList<>();
         this.children = new ArrayList<>();
+        this.bodyType = bodyType;
     }
     
     public StepBody constructBody(Injector injector) throws InstantiationException, IllegalAccessException {
-        return (StepBody)injector.getInstance(bodyType);        
+        return (StepBody)injector.getInstance(bodyType);
         //return (StepBody)bodyType.newInstance();
     }
 
@@ -144,6 +146,10 @@ public class WorkflowStep {
     
     public void afterExecute(WorkflowExecutorResult executorResult, StepExecutionContext context, ExecutionResult result, ExecutionPointer executionPointer) {            
     }
+    
+    public void primeForRetry(ExecutionPointer pointer) {
+        
+    }
 
     /**
      * @return the retryBehavior
@@ -190,5 +196,22 @@ public class WorkflowStep {
     public void setChildren(List<Integer> children) {
         this.children = children;
     }
+
+    public Integer getCompensationStepId() {
+        return compensationStepId;
+    }
+
+    public void setCompensationStepId(Integer compensationStepId) {
+        this.compensationStepId = compensationStepId;
+    }
     
+    public boolean getResumeChildrenAfterCompensation() {
+        return true;
+    }
+    
+    public boolean getRevertChildrenAfterCompensation() {
+        return false;
+    }    
 }
+
+

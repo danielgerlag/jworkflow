@@ -27,9 +27,8 @@ public class WorkflowStepInline extends WorkflowStep {
     
     
     public WorkflowStepInline(Function<StepExecutionContext, ExecutionResult> body) {
-        super();
+        super(InlineBody.class);
         this.body = body;
-        setBodyType(InlineBody.class);
     }
     
     @Override

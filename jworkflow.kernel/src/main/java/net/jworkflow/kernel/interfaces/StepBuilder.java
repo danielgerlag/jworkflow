@@ -100,7 +100,7 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      * @param effectiveDateUtc
      * @return 
      */
-    StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDateUtc);
+    StepBuilder<TData, WaitFor> waitFor(String eventName, Function<TData, String> eventKey, Function<TData, Date> effectiveDateUtc);
 
     /**
      * Put the workflow to sleep until to specified event is published
@@ -108,7 +108,7 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      * @param eventKey
      * @return 
      */
-    StepBuilder<TData, SubscriptionStepBody> waitFor(String eventName, Function<TData, String> eventKey);
+    StepBuilder<TData, WaitFor> waitFor(String eventName, Function<TData, String> eventKey);
 
     //StepBuilder<TData, TStep> when(Object value, WorkflowBuilderConsumer<TData> branch);
     

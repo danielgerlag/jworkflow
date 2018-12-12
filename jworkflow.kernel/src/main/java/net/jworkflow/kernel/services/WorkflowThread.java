@@ -4,7 +4,6 @@ import net.jworkflow.kernel.interfaces.WorkflowExecutor;
 import net.jworkflow.kernel.interfaces.LockService;
 import net.jworkflow.kernel.interfaces.QueueService;
 import com.google.inject.Inject;
-import java.util.List;
 import net.jworkflow.kernel.models.QueueType;
 import java.util.logging.Level;
 import java.util.logging.Logger;

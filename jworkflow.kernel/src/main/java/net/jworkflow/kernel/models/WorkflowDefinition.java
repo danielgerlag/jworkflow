@@ -62,4 +62,12 @@ public final class WorkflowDefinition {
         this.dataType = dataType;
     }
     
+    public WorkflowStep findStep(int findId) {
+        for (WorkflowStep step: steps) {
+            if (step.getId() == findId)
+                return step;
+        }
+        return null;
+    }
+    
 }
