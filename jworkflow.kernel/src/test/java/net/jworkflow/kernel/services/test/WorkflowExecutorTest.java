@@ -129,7 +129,7 @@ public class WorkflowExecutorTest {
         given1StepWorkflow(step1, "Workflow", 1);
 
         ExecutionPointer pointer = new ExecutionPointer();
-        pointer.active = false;
+        pointer.active = true;
         pointer.stepId = 0;
         
         DataClass data = new DataClass();
