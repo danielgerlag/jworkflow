@@ -33,58 +33,34 @@ public class WorkflowStep {
         //return (StepBody)bodyType.newInstance();
     }
 
-    /**
-     * @return the bodyType
-     */
     public Class getBodyType() {
         return bodyType;
     }
 
-    /**
-     * @param bodyType the bodyType to set
-     */
     public void setBodyType(Class bodyType) {
         this.bodyType = bodyType;
     }
 
-    /**
-     * @return the id
-     */
     public int getId() {
         return id;
     }
 
-    /**
-     * @param id the id to set
-     */
     public void setId(int id) {
         this.id = id;
     }
 
-    /**
-     * @return the name
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * @param name the name to set
-     */
     public void setName(String name) {
         this.name = name;
     }
 
-    /**
-     * @return the outcomes
-     */
     public List<StepOutcome> getOutcomes() {
         return outcomes;
     }
 
-    /**
-     * @param outcomes the outcomes to set
-     */
     public void setOutcomes(List<StepOutcome> outcomes) {
         this.outcomes = outcomes;
     }
@@ -100,16 +76,11 @@ public class WorkflowStep {
         outcomes.add(outcome);
     }
 
-    /**
-     * @return the inputs
-     */
+    
     public List<StepFieldConsumer> getInputs() {
         return inputs;
     }
 
-    /**
-     * @param inputs the inputs to set
-     */
     public void setInputs(List<StepFieldConsumer> inputs) {
         this.inputs = inputs;
     }
@@ -118,16 +89,10 @@ public class WorkflowStep {
         inputs.add(value);
     }
 
-    /**
-     * @return the outputs
-     */
     public List<StepFieldConsumer> getOutputs() {
         return outputs;
     }
 
-    /**
-     * @param outputs the outputs to set
-     */
     public void setOutputs(List<StepFieldConsumer> outputs) {
         this.outputs = outputs;
     }
@@ -151,37 +116,22 @@ public class WorkflowStep {
         
     }
 
-    /**
-     * @return the retryBehavior
-     */
     public ErrorBehavior getRetryBehavior() {
         return retryBehavior;
     }
 
-    /**
-     * @param retryBehavior the retryBehavior to set
-     */
     public void setRetryBehavior(ErrorBehavior retryBehavior) {
         this.retryBehavior = retryBehavior;
     }
 
-    /**
-     * @return the retryInterval
-     */
     public Duration getRetryInterval() {
         return retryInterval;
     }
 
-    /**
-     * @param retryInterval the retryInterval to set
-     */
     public void setRetryInterval(Duration retryInterval) {
         this.retryInterval = retryInterval;
     }
 
-    /**
-     * @return the children
-     */
     public Collection<Integer> getChildren() {
         return children;
     }
@@ -190,9 +140,6 @@ public class WorkflowStep {
         children.add(child);
     }
 
-    /**
-     * @param children the children to set
-     */
     public void setChildren(List<Integer> children) {
         this.children = children;
     }

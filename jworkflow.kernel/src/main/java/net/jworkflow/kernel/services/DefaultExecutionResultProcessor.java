@@ -103,7 +103,7 @@ public class DefaultExecutionResultProcessor implements ExecutionResultProcessor
 
         while (!scope.empty()) {
             String pointerId = scope.pop();
-            ExecutionPointer pointer = workflow.findExecutionPointer(pointerId);
+            ExecutionPointer pointer = workflow.getExecutionPointers().findById(pointerId);
             WorkflowStep step = def.findStep(pointer.stepId);
             if (step.getCompensationStepId() != null)
                 return step.getCompensationStepId();

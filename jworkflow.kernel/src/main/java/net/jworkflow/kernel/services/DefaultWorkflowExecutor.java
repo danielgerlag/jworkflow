@@ -7,6 +7,7 @@ import com.google.inject.Injector;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +36,7 @@ public class DefaultWorkflowExecutor implements WorkflowExecutor {
         if (workflow.getStatus() != WorkflowStatus.RUNNABLE)
             return wfResult;
         
-        ExecutionPointer[] exePointers = workflow.getExecutionPointers().stream().filter(x -> x.active).toArray(ExecutionPointer[]::new);        
+        List<ExecutionPointer> exePointers = workflow.getExecutionPointers().findMany(x -> x.active);
         WorkflowDefinition def = registry.getDefinition(workflow.getWorkflowDefintionId(), workflow.getVersion());
         
         if (def == null) {
@@ -135,7 +136,7 @@ public class DefaultWorkflowExecutor implements WorkflowExecutor {
         if (workflow.getNextExecution() == null) {
             for (ExecutionPointer pointer : workflow.getExecutionPointers()) { 
                 if ((pointer.active) && (!pointer.children.isEmpty())) {
-                    if (workflow.getExecutionPointers().stream().filter(x -> pointer.children.contains(x.id)).allMatch(x -> workflow.isBranchComplete(x.id))) {
+                    if (workflow.getExecutionPointers().streamMany(x -> pointer.children.contains(x.id)).allMatch(x -> workflow.isBranchComplete(x.id))) {
                         workflow.setNextExecution((long)0);
                         return;
                     }

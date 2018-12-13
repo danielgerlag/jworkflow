@@ -37,7 +37,7 @@ public class CompensateHandler implements StepErrorHandler {
 
         while (!scope.isEmpty()) {
             String pointerId = scope.pop();
-            ExecutionPointer ptr = workflow.findExecutionPointer(pointerId);
+            ExecutionPointer ptr = workflow.getExecutionPointers().findById(pointerId);
             WorkflowStep ptrstep = def.findStep(ptr.stepId);
             
             boolean resume = true;
@@ -45,7 +45,7 @@ public class CompensateHandler implements StepErrorHandler {
 
             if (!scope.isEmpty()) {
                 String parentId = scope.peek();
-                ExecutionPointer parentPointer = workflow.findExecutionPointer(parentId);
+                ExecutionPointer parentPointer = workflow.getExecutionPointers().findById(parentId);
                 WorkflowStep parentStep = def.findStep(parentPointer.stepId);
                 resume = parentStep.getResumeChildrenAfterCompensation();
                 revert = parentStep.getRevertChildrenAfterCompensation();
@@ -72,8 +72,8 @@ public class CompensateHandler implements StepErrorHandler {
             }
 
             if (revert) {                
-                workflow.getExecutionPointers().stream()
-                        .filter(x ->  ptr.callStack.equals(x.callStack) && !x.id.equals(ptr.id) && x.status == PointerStatus.Complete)
+                workflow.getExecutionPointers().findMany(x ->  ptr.callStack.equals(x.callStack) && !x.id.equals(ptr.id) && x.status == PointerStatus.Complete)
+                        .stream()
                         .sorted((x1, x2) -> x2.endTimeUtc.compareTo(x1.endTimeUtc))
                         .forEach(siblingPtr -> {
                             WorkflowStep siblingStep = def.findStep(siblingPtr.stepId);
