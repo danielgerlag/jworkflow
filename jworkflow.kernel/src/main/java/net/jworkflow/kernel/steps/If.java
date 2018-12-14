@@ -1,5 +1,6 @@
 package net.jworkflow.kernel.steps;
 
+import net.jworkflow.kernel.exceptions.CorruptPersistenceDataException;
 import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.models.ControlStepData;
 import net.jworkflow.kernel.models.ExecutionResult;
@@ -38,6 +39,6 @@ public class If implements StepBody {
             }
         }
 
-        throw new Exception("Corrupt persistence data");
+        throw new CorruptPersistenceDataException();
     }
 }

@@ -1,9 +1,11 @@
 package net.jworkflow.kernel.services;
 
+import java.util.Comparator;
 import net.jworkflow.kernel.models.WorkflowDefinition;
 import net.jworkflow.kernel.models.WorkflowStep;
 import net.jworkflow.kernel.interfaces.StepBody;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
@@ -24,8 +26,7 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
         result.setDataType(dataType);
         return result;
     }
-    
-    
+
     @Override
     public <TStep extends StepBody> StepBuilder<TData, TStep> startsWith(Class<TStep> stepClass) {        
         return startsWith(stepClass, null);        
@@ -43,6 +44,14 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
         addStep(step);
         
         return stepBuilder;        
-    }       
+    }
+    
+    @Override
+    public int getLastStep() {
+        return steps.stream()
+                .max(Comparator.comparing(WorkflowStep::getId))
+                .orElseThrow(NoSuchElementException::new)
+                .getId();        
+    }
     
 }

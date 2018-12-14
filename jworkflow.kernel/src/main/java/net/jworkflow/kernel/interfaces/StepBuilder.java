@@ -139,4 +139,18 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      */
     ControlStepBuilder<TData, If> If(Function<TData, Boolean> condition);
     
+    /**
+     * Put the this workflow branch to sleep for a specified time
+     * @param duration
+     * @return 
+     */
+    StepBuilder<TData, Delay> delay(Function<TData, Duration> duration);
+    
+    /**
+     * Schedules the future execution of a branch of steps
+     * @param duration
+     * @return 
+     */
+    ControlStepBuilder<TData, Schedule> schedule(Function<TData, Duration> duration);
+    
 }

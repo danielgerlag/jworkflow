@@ -9,13 +9,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import net.jworkflow.kernel.steps.Delay;
 import net.jworkflow.kernel.steps.Foreach;
 import net.jworkflow.kernel.steps.If;
+import net.jworkflow.kernel.steps.Schedule;
 import net.jworkflow.kernel.steps.While;
 
 public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep>, ControlStepBuilder<TData, TStep> {
-    
-    
+        
     private final WorkflowBuilder workflowBuilder;
     private final WorkflowStep step;
     private final Class<TData> dataClass;
@@ -176,6 +177,30 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         consumer.accept(workflowBuilder);
         step.addChild(step.getId() + 1); //TODO: make more elegant
         return this;
+    }
+
+    @Override
+    public StepBuilder<TData, Delay> delay(Function<TData, Duration> duration) {
+        WorkflowStep newStep = new WorkflowStep(Delay.class);
+        StepFieldConsumer<Delay, TData> durationConsumer = (step, data) -> step.duration = duration.apply(data);
+        newStep.addInput(durationConsumer);
+        
+        workflowBuilder.addStep(newStep);        
+        StepBuilder<TData, Delay> stepBuilder = new DefaultStepBuilder<>(dataClass, Delay.class, workflowBuilder, newStep);
+        step.addOutcome(newStep.getId(), null);
+        return stepBuilder;
+    }
+
+    @Override
+    public ControlStepBuilder<TData, Schedule> schedule(Function<TData, Duration> duration) {
+        WorkflowStep newStep = new WorkflowStep(Schedule.class);
+        StepFieldConsumer<Schedule, TData> durationConsumer = (step, data) -> step.duration = duration.apply(data);
+        newStep.addInput(durationConsumer);
+        
+        workflowBuilder.addStep(newStep);        
+        ControlStepBuilder<TData, Schedule> stepBuilder = new DefaultStepBuilder<>(dataClass, Schedule.class, workflowBuilder, newStep);
+        step.addOutcome(newStep.getId(), null);
+        return stepBuilder;
     }
     
 }
