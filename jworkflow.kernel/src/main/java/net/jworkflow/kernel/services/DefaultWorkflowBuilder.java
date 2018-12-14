@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import net.jworkflow.kernel.interfaces.StepBuilder;
+import net.jworkflow.kernel.interfaces.StepExecutionConsumer;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
+import net.jworkflow.kernel.models.WorkflowStepInline;
 
 public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implements WorkflowBuilder<TData> {
     
@@ -54,4 +56,13 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
                 .getId();        
     }
     
+    @Override
+    public StepBuilder<TData, WorkflowStepInline.InlineBody> startsWith(StepExecutionConsumer body) {
+        WorkflowStepInline step = new WorkflowStepInline(body);        
+        addStep(step);
+        StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new DefaultStepBuilder<>(dataType, WorkflowStepInline.InlineBody.class, this, step);
+        step.addOutcome(step.getId(), null);        
+        
+        return stepBuilder;        
+    }
 }

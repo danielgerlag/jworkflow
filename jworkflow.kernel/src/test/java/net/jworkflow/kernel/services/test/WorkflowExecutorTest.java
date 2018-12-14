@@ -129,7 +129,7 @@ public class WorkflowExecutorTest {
         given1StepWorkflow(step1, "Workflow", 1);
 
         ExecutionPointer pointer = new ExecutionPointer();
-        pointer.active = false;
+        pointer.active = true;
         pointer.stepId = 0;
         
         DataClass data = new DataClass();
@@ -149,6 +149,41 @@ public class WorkflowExecutorTest {
 
         //assert        
         assertEquals(5, step1Body.property1);
+    }
+    
+    @Test
+    public void should_map_outputs() throws Exception {
+        //arrange
+        StepFieldConsumer<StepWithProperties, DataClass> p1 = (step, data) -> data.value2 = step.property2;
+        List<StepFieldConsumer> outputs = new ArrayList<>();
+        outputs.add(p1);
+
+        StepWithProperties step1Body = mock(StepWithProperties.class);
+        when(step1Body.run(any(StepExecutionContext.class))).thenReturn(ExecutionResult.next());        
+        when(step1Body.property2).thenReturn(7);
+        WorkflowStep step1 = buildFakeStep(step1Body, new ArrayList<>(), outputs);
+        given1StepWorkflow(step1, "Workflow", 1);
+
+        ExecutionPointer pointer = new ExecutionPointer();
+        pointer.active = true;
+        pointer.stepId = 0;
+        
+        DataClass data = new DataClass();
+
+        WorkflowInstance instance = new WorkflowInstance();
+        instance.setWorkflowDefintionId("Workflow");
+        instance.setVersion(1);
+        instance.setStatus(WorkflowStatus.RUNNABLE);
+        instance.setNextExecution((long)0);
+        instance.setId("001");        
+        instance.setData(data);
+        instance.getExecutionPointers().add(pointer);        
+        
+        //act
+        subject.execute(instance);
+
+        //assert        
+        assertEquals(7, data.value2);
     }
     
     private void given1StepWorkflow(WorkflowStep step1, String id, int version) {
