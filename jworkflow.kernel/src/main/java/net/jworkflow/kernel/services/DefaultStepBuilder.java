@@ -83,7 +83,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     }
     
     @Override
-    public StepBuilder<TData, ConsumerStep> then(Consumer<StepExecutionContext> body) {
+    public StepBuilder<TData, ConsumerStep> thenAction(Consumer<StepExecutionContext> body) {
         WorkflowStep newStep = new WorkflowStep(ConsumerStep.class);
         StepFieldConsumer<ConsumerStep, TData> bodyConsumer = (step, data) -> step.body = body;
         newStep.addInput(bodyConsumer);        

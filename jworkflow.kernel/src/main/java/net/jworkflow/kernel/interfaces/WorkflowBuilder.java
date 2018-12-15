@@ -14,5 +14,5 @@ public interface WorkflowBuilder<TData> {
     WorkflowDefinition build(String id, int version);
     <TStep extends StepBody> StepBuilder<TData, TStep> startsWith(Class<TStep> stepClass, Consumer<StepBuilder<TData, TStep>> stepSetup);
     StepBuilder<TData, WorkflowStepInline.InlineBody> startsWith(StepExecutionConsumer body);
-    StepBuilder<TData, ConsumerStep> startsWith(Consumer<StepExecutionContext> body);
+    StepBuilder<TData, ConsumerStep> startsWithAction(Consumer<StepExecutionContext> body);
 }

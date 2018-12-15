@@ -94,7 +94,7 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      */
     StepBuilder<TData, WorkflowStepInline.InlineBody> then(StepExecutionConsumer body);
     
-    StepBuilder<TData, ConsumerStep> then(Consumer<StepExecutionContext> body);
+    StepBuilder<TData, ConsumerStep> thenAction(Consumer<StepExecutionContext> body);
 
     /**
      * Put the workflow to sleep until to specified event is published

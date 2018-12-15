@@ -69,7 +69,7 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
     }
 
     @Override
-    public StepBuilder<TData, ConsumerStep> startsWith(Consumer<StepExecutionContext> body) {
+    public StepBuilder<TData, ConsumerStep> startsWithAction(Consumer<StepExecutionContext> body) {
         WorkflowStep newStep = new WorkflowStep(ConsumerStep.class);
         StepFieldConsumer<ConsumerStep, TData> bodyConsumer = (step, data) -> step.body = body;
         newStep.addInput(bodyConsumer);        

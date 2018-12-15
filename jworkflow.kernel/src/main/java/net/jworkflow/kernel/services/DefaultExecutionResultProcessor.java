@@ -5,6 +5,8 @@ import com.google.inject.Singleton;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Logger;
@@ -80,20 +82,29 @@ public class DefaultExecutionResultProcessor implements ExecutionResultProcessor
     @Override
     public void handleStepException(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer pointer, WorkflowStep step) {
         pointer.status = PointerStatus.Failed;            
-        Integer compensatingStepId = findScopeCompensationStepId(workflow, def, pointer);
-        ErrorBehavior errorOption = step.getRetryBehavior();
-        if (errorOption == null) {
-            if (compensatingStepId != null) {
-                errorOption = ErrorBehavior.COMPENSATE;
+        
+        Queue<ExecutionPointer> queue = new LinkedList<>();
+        queue.add(pointer);
+        
+        while (!queue.isEmpty()) {
+            ExecutionPointer exceptionPointer = queue.remove();
+            WorkflowStep exceptionStep = def.findStep(exceptionPointer.stepId);
+            
+            Integer compensatingStepId = findScopeCompensationStepId(workflow, def, exceptionPointer);
+            ErrorBehavior errorOption = exceptionStep.getRetryBehavior();
+            if (errorOption == null) {
+                if (compensatingStepId != null) {
+                    errorOption = ErrorBehavior.COMPENSATE;
+                }
+                else {
+                    errorOption = ErrorBehavior.RETRY; //def.DefaultErrorBehavior
+                }
             }
-            else {
-                errorOption = ErrorBehavior.RETRY; //def.DefaultErrorBehavior
-            }
-        }
 
-        for (StepErrorHandler handler: errorHandlers) {
-            if (handler.getErrorBehavior() == errorOption)
-                handler.handle(workflow, def, pointer, step, this);
+            for (StepErrorHandler handler: errorHandlers) {
+                if (handler.getErrorBehavior() == errorOption)
+                    handler.handle(workflow, def, exceptionPointer, exceptionStep, queue);
+            }
         }
     }    
     
