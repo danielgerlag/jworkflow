@@ -7,16 +7,10 @@ import net.jworkflow.kernel.models.WorkflowStatus;
 import net.jworkflow.kernel.models.ExecutionPointer;
 import net.jworkflow.kernel.models.Event;
 import net.jworkflow.kernel.models.WorkflowInstance;
-import net.jworkflow.kernel.interfaces.WorkflowRegistry;
-import net.jworkflow.kernel.interfaces.LockService;
-import net.jworkflow.kernel.interfaces.QueueService;
-import net.jworkflow.kernel.interfaces.PersistenceService;
-import net.jworkflow.kernel.interfaces.Workflow;
-import net.jworkflow.kernel.interfaces.WorkflowHost;
+import net.jworkflow.kernel.interfaces.*;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import java.util.UUID;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,6 +31,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
     private final QueueService queueProvider;
     private final LockService lockProvider;
     private final WorkflowRegistry registry;
+    private final ExecutionPointerFactory pointerFactory;
     private final List<ScheduledFuture> workerFutures;
     private final ScheduledExecutorService scheduler;
     private final Injector injector;
@@ -45,7 +40,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
     private ScheduledFuture pollFuture;
     
     @Inject
-    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, Injector injector, Logger logger) {
+    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, ExecutionPointerFactory pointerFactory, Injector injector, Logger logger) {
         
         Runtime runtime = Runtime.getRuntime();
         
@@ -53,6 +48,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
         this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;
         this.registry = registry;        
+        this.pointerFactory = pointerFactory;
         this.injector = injector;
         this.logger = logger;
         this.scheduler = Executors.newScheduledThreadPool(runtime.availableProcessors());
@@ -85,12 +81,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
             wf.setData(def.getDataType().newInstance());
         }
 
-        ExecutionPointer ep = new ExecutionPointer();
-        ep.id = UUID.randomUUID().toString();
-        ep.active = true;
-        ep.stepId = 0;
-        
-        wf.getExecutionPointers().add(ep);
+        wf.getExecutionPointers().add(pointerFactory.buildGenesisPointer(def));
         String id = persistenceProvider.createNewWorkflow(wf);
         
         queueProvider.queueForProcessing(QueueType.WORKFLOW, id);

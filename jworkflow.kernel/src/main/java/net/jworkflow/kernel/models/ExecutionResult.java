@@ -1,6 +1,7 @@
 package net.jworkflow.kernel.models;
 
 import java.time.Duration;
+import java.util.Date;
 
 public class ExecutionResult {
     private boolean proceed;
@@ -8,6 +9,10 @@ public class ExecutionResult {
     private Duration sleepFor;
     private Object persistenceData;
     private Object[] branches = new Object[]{}; 
+    private String eventName;
+    private String eventKey;
+    private Date eventAsOf;
+            
 
     public static ExecutionResult next() {
         ExecutionResult result = new ExecutionResult();
@@ -43,6 +48,16 @@ public class ExecutionResult {
         result.setProceed(false);
         result.setPersistenceData(persistenceData);
         result.setBranches(branches);
+        return result;
+    }
+    
+    public static ExecutionResult waitForEvent(String eventName, String eventKey, Date effectiveDate) {
+        ExecutionResult result = new ExecutionResult();
+        result.setProceed(false);
+        result.setOutcomeValue(null);
+        result.setEventName(eventName);
+        result.setEventKey(eventKey);
+        result.setEventAsOf(effectiveDate);
         return result;
     }
     
@@ -114,5 +129,29 @@ public class ExecutionResult {
      */
     public void setBranches(Object[] branches) {
         this.branches = branches;
+    }
+
+    public String getEventName() {
+        return eventName;
+    }
+
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
+    }
+
+    public String getEventKey() {
+        return eventKey;
+    }
+
+    public void setEventKey(String eventKey) {
+        this.eventKey = eventKey;
+    }
+
+    public Date getEventAsOf() {
+        return eventAsOf;
+    }
+
+    public void setEventAsOf(Date eventAsOf) {
+        this.eventAsOf = eventAsOf;
     }
 }

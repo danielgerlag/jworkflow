@@ -30,8 +30,7 @@ public class DefaultStepOutcomeBuilder<TData> implements StepOutcomeBuilder<TDat
     
     @Override
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass, Consumer<StepBuilder<TData, TNewStep>> stepSetup) {                
-        WorkflowStep newStep = new WorkflowStep();
-        newStep.setBodyType(stepClass);        
+        WorkflowStep newStep = new WorkflowStep(stepClass);
         newStep.setName(stepClass.getName());
         
         workflowBuilder.addStep(newStep);

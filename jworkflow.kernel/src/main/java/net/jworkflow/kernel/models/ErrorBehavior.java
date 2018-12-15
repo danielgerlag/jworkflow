@@ -1,3 +1,3 @@
 package net.jworkflow.kernel.models;
 
-public enum ErrorBehavior { RETRY, SUSPEND, TERMINATE }  
+public enum ErrorBehavior { RETRY, SUSPEND, TERMINATE, COMPENSATE }  
