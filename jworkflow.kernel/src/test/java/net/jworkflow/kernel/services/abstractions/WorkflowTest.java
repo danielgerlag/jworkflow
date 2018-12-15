@@ -21,6 +21,7 @@ public abstract class WorkflowTest<TData> {
     
     protected void setup() throws Exception {
         //WorkflowModule module = configure();
+        WorkflowModule.setup();
         host = WorkflowModule.getHost();
         persistence = WorkflowModule.getPersistenceProvider();
         host.registerWorkflow(getWorkflow());
@@ -43,7 +44,7 @@ public abstract class WorkflowTest<TData> {
     
     protected void waitForEventSubscription(String eventName, String eventKey) throws InterruptedException {
         int counter = 0;
-        while ((!getActiveSubscriptons(eventName, eventKey).iterator().hasNext()) && (counter < 100)) {
+        while ((getActiveSubscriptons(eventName, eventKey).isEmpty()) && (counter < 100)) {
             Thread.sleep(100);
             counter++;
         }
@@ -60,30 +61,11 @@ public abstract class WorkflowTest<TData> {
         return (TData)instance.getData();
     }
     
-    protected Iterable<EventSubscription> getActiveSubscriptons(String eventName, String eventKey) {
-        return persistence.getSubcriptions(eventName, eventKey, Date.from(Instant.MAX));
+    protected Collection<EventSubscription> getActiveSubscriptons(String eventName, String eventKey) {
+        return (Collection<EventSubscription>) persistence.getSubcriptions(eventName, eventKey, Date.from(Instant.MAX));
     }
     
     protected void teardown() {
         host.stop();
-    }
-    
-    public abstract class TestableWorkflow<TData> implements Workflow<TData> {
-
-        @Override
-        public String getId() {
-            return "scenario";
-        }
-
-        @Override
-        public Class getDataType() {
-            return Object.class;
-        }
-
-        @Override
-        public int getVersion() {
-            return 1;
-        }
-    }
-    
+    }   
 }
