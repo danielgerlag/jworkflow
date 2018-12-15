@@ -160,7 +160,7 @@ public class WorkflowExecutorTest {
 
         StepWithProperties step1Body = mock(StepWithProperties.class);
         when(step1Body.run(any(StepExecutionContext.class))).thenReturn(ExecutionResult.next());        
-        when(step1Body.property2).thenReturn(7);
+        step1Body.property2 = 7;
         WorkflowStep step1 = buildFakeStep(step1Body, new ArrayList<>(), outputs);
         given1StepWorkflow(step1, "Workflow", 1);
 
@@ -184,6 +184,62 @@ public class WorkflowExecutorTest {
 
         //assert        
         assertEquals(7, data.value2);
+    }
+    
+    @Test
+    public void should_handle_step_exception() throws Exception {
+        //arrange            
+        StepBody step1Body = mock(StepBody.class);
+        when(step1Body.run(any(StepExecutionContext.class))).thenThrow(Exception.class);
+        WorkflowStep step1 = buildFakeStep(step1Body);
+        given1StepWorkflow(step1, "Workflow", 1);
+
+        ExecutionPointer pointer = new ExecutionPointer();
+        pointer.active = true;
+        pointer.stepId = 0;
+
+        WorkflowInstance instance = new WorkflowInstance();
+        instance.setWorkflowDefintionId("Workflow");
+        instance.setVersion(1);
+        instance.setStatus(WorkflowStatus.RUNNABLE);
+        instance.setNextExecution((long)0);
+        instance.setId("001");
+        instance.getExecutionPointers().add(pointer);
+        
+        //act
+        subject.execute(instance);
+
+        //assert
+        verify(step1Body).run(any(StepExecutionContext.class));
+        verify(resultProcessor).handleStepException(any(WorkflowInstance.class), any(WorkflowDefinition.class), any(ExecutionPointer.class), any(WorkflowStep.class));
+        verify(resultProcessor, never()).processExecutionResult(any(WorkflowInstance.class), any(WorkflowDefinition.class), any(ExecutionPointer.class), any(WorkflowStep.class), any(ExecutionResult.class), any(WorkflowExecutorResult.class));
+    }
+    
+    @Test
+    public void should_process_after_execution_iteration() throws Exception {
+        //arrange   
+        StepBody step1Body = mock(StepBody.class);
+        when(step1Body.run(any(StepExecutionContext.class))).thenReturn(ExecutionResult.persist(null));
+        WorkflowStep step1 = buildFakeStep(step1Body);
+        given1StepWorkflow(step1, "Workflow", 1);
+        
+        ExecutionPointer pointer = new ExecutionPointer();
+        pointer.active = true;
+        pointer.stepId = 0;
+
+        WorkflowInstance instance = new WorkflowInstance();
+        instance.setWorkflowDefintionId("Workflow");
+        instance.setVersion(1);
+        instance.setStatus(WorkflowStatus.RUNNABLE);
+        instance.setNextExecution((long)0);
+        instance.setId("001");
+        instance.getExecutionPointers().add(pointer);
+
+        //act
+        subject.execute(instance);
+
+        //assert
+        verify(step1).afterWorkflowIteration(any(WorkflowExecutorResult.class), any(WorkflowDefinition.class), any(WorkflowInstance.class), any(ExecutionPointer.class));
     }
     
     private void given1StepWorkflow(WorkflowStep step1, String id, int version) {

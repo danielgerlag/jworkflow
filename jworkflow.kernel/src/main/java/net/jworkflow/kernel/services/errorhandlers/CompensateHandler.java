@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Queue;
 import java.util.Stack;
 import net.jworkflow.kernel.interfaces.*;
 import net.jworkflow.kernel.models.*;
@@ -27,7 +28,7 @@ public class CompensateHandler implements StepErrorHandler {
     }
 
     @Override
-    public void handle(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer pointer, WorkflowStep step, ExecutionResultProcessor bubleupHandler) {
+    public void handle(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer pointer, WorkflowStep step, Queue<ExecutionPointer> bubleupQueue) {
         Stack<String> scope = (Stack<String>)pointer.callStack;
         scope.push(pointer.id);
 
@@ -52,7 +53,7 @@ public class CompensateHandler implements StepErrorHandler {
             }
 
             if ((ptrstep.getRetryBehavior() != ErrorBehavior.COMPENSATE) && (ptrstep.getRetryBehavior() != null)){
-                bubleupHandler.handleStepException(workflow, def, ptr, ptrstep);
+                bubleupQueue.add(ptr);
                 continue;            
             }
 

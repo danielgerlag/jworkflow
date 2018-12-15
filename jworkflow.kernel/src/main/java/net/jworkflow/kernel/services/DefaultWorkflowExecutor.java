@@ -92,7 +92,7 @@ public class DefaultWorkflowExecutor implements WorkflowExecutor {
                 resultProcessor.handleStepException(workflow, def, pointer, step.get());
             }                 
         }
-        
+        processAfterExecutionIteration(workflow, def, wfResult);
         determineNextExecution(workflow);
                 
         if (workflow.getNextExecution() == null)
@@ -150,5 +150,14 @@ public class DefaultWorkflowExecutor implements WorkflowExecutor {
                 workflow.setCompleteTimeUtc(Date.from(Instant.now(clock)));
             }                      
         }        
+    }
+
+    private void processAfterExecutionIteration(WorkflowInstance workflow, WorkflowDefinition workflowDef, WorkflowExecutorResult workflowResult) {
+        List<ExecutionPointer> pointers = workflow.getExecutionPointers().findMany(x -> x.endTimeUtc == null);
+
+        pointers.forEach((pointer) -> {
+            WorkflowStep step = workflowDef.findStep(pointer.stepId);
+            step.afterWorkflowIteration(workflowResult, workflowDef, workflow, pointer);
+        });
     }    
 }

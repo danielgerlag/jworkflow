@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Queue;
 import net.jworkflow.kernel.interfaces.*;
 import net.jworkflow.kernel.models.*;
 
@@ -24,7 +25,7 @@ public class RetryHandler implements StepErrorHandler {
     }
 
     @Override
-    public void handle(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer pointer, WorkflowStep step, ExecutionResultProcessor bubleupHandler) {
+    public void handle(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer pointer, WorkflowStep step, Queue<ExecutionPointer> bubleupQueue) {
         pointer.retryCounter++;        
         pointer.sleepUntil = Date.from(Instant.now(clock).plus(step.getRetryInterval()));
         step.primeForRetry(pointer);

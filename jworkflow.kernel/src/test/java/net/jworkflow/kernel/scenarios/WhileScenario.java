@@ -56,7 +56,7 @@ public class WhileScenario extends Scenario {
                     step1Ticker++;
                     return ExecutionResult.next();
                 })
-                .while(data -> data.counter < 3)
+                .While(data -> data.counter < 3)
                     .Do(each -> each
                         .startsWith(DoSomething.class)
                             .output((step, data) -> data.counter += step.increment)
