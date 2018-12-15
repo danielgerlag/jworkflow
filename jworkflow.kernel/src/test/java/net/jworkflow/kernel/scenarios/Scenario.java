@@ -33,7 +33,7 @@ public abstract class Scenario {
         
         WorkflowInstance instance = persistence.getWorkflowInstance(id);
         int counter = 0;
-        while ((instance.getStatus() == WorkflowStatus.RUNNABLE) && (counter < 60)) {
+        while ((instance.getStatus() == WorkflowStatus.RUNNABLE) && (counter < 100)) {
             Thread.sleep(100);
             instance = persistence.getWorkflowInstance(id);
             counter++;

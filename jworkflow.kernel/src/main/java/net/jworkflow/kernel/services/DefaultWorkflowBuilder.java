@@ -9,8 +9,11 @@ import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.interfaces.StepExecutionConsumer;
+import net.jworkflow.kernel.interfaces.StepFieldConsumer;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
+import net.jworkflow.kernel.models.StepExecutionContext;
 import net.jworkflow.kernel.models.WorkflowStepInline;
+import net.jworkflow.kernel.steps.ConsumerStep;
 
 public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implements WorkflowBuilder<TData> {
     
@@ -45,7 +48,7 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
         
         addStep(step);
         
-        return stepBuilder;        
+        return stepBuilder;
     }
     
     @Override
@@ -61,8 +64,18 @@ public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implement
         WorkflowStepInline step = new WorkflowStepInline(body);        
         addStep(step);
         StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new DefaultStepBuilder<>(dataType, WorkflowStepInline.InlineBody.class, this, step);
-        step.addOutcome(step.getId(), null);        
-        
+
         return stepBuilder;        
+    }
+
+    @Override
+    public StepBuilder<TData, ConsumerStep> startsWith(Consumer<StepExecutionContext> body) {
+        WorkflowStep newStep = new WorkflowStep(ConsumerStep.class);
+        StepFieldConsumer<ConsumerStep, TData> bodyConsumer = (step, data) -> step.body = body;
+        newStep.addInput(bodyConsumer);        
+        StepBuilder<TData, ConsumerStep> stepBuilder = new DefaultStepBuilder<>(dataType, ConsumerStep.class, this, newStep);
+        addStep(newStep);
+        
+        return stepBuilder;
     }
 }

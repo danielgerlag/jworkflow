@@ -2,6 +2,7 @@ package net.jworkflow.kernel.interfaces;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import net.jworkflow.kernel.models.ErrorBehavior;
 import net.jworkflow.kernel.models.*;
@@ -92,6 +93,8 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      * @return 
      */
     StepBuilder<TData, WorkflowStepInline.InlineBody> then(StepExecutionConsumer body);
+    
+    StepBuilder<TData, ConsumerStep> then(Consumer<StepExecutionContext> body);
 
     /**
      * Put the workflow to sleep until to specified event is published
@@ -152,5 +155,17 @@ public interface StepBuilder<TData, TStep extends StepBody> {
      * @return 
      */
     ControlStepBuilder<TData, Schedule> schedule(Function<TData, Duration> duration);
+        
+    ParallelStepBuilder<TData, Sequence> parallel();
     
+    StepBuilder<TData, Sequence> saga(WorkflowBuilderConsumer<TData> consumer);
+    
+    <TNewStep extends StepBody> StepBuilder<TData, TStep> compensateWith(Class<TNewStep> stepClass);
+    
+    <TNewStep extends StepBody> StepBuilder<TData, TStep> compensateWith(Class<TNewStep> stepClass, StepBuilderConsumer stepSetup);
+    
+    StepBuilder<TData, TStep> compensateWith(StepExecutionConsumer body);
+    
+    StepBuilder<TData, TStep> compensateWith(WorkflowBuilderConsumer<TData> consumer);
+
 }
