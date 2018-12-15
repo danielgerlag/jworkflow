@@ -7,7 +7,7 @@ import net.jworkflow.kernel.models.StepExecutionContext;
 
 public class Delay implements StepBody {
     
-    public Duration period;            
+    public Duration duration;
     
     @Override
     public ExecutionResult run(StepExecutionContext context) {
@@ -16,6 +16,6 @@ public class Delay implements StepBody {
             return ExecutionResult.next();
         }
             
-        return ExecutionResult.sleep(period, true);
+        return ExecutionResult.sleep(duration, true);
     }
 }

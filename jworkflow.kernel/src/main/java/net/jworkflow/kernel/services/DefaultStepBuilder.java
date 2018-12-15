@@ -9,13 +9,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import net.jworkflow.kernel.steps.ConsumerStep;
+import net.jworkflow.kernel.steps.Delay;
 import net.jworkflow.kernel.steps.Foreach;
 import net.jworkflow.kernel.steps.If;
+import net.jworkflow.kernel.steps.SagaContainer;
+import net.jworkflow.kernel.steps.Schedule;
+import net.jworkflow.kernel.steps.Sequence;
 import net.jworkflow.kernel.steps.While;
 
 public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep>, ControlStepBuilder<TData, TStep> {
-    
-    
+        
     private final WorkflowBuilder workflowBuilder;
     private final WorkflowStep step;
     private final Class<TData> dataClass;
@@ -36,8 +40,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     public StepBuilder<TData, TStep> name(String name) {
         step.setName(name);
         return this;
-    }
-    
+    }    
     
     @Override
     public <TNewStep extends StepBody> StepBuilder<TData, TNewStep> then(Class<TNewStep> stepClass) {                
@@ -58,7 +61,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         
         step.addOutcome(newStep.getId(), null);        
         
-        return stepBuilder;        
+        return stepBuilder;
     }
     
     @Override
@@ -71,12 +74,23 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     
     @Override
     public StepBuilder<TData, WorkflowStepInline.InlineBody> then(StepExecutionConsumer body) {                
-        WorkflowStepInline newStep = new WorkflowStepInline(body);        
+        WorkflowStepInline newStep = new WorkflowStepInline(body);
         workflowBuilder.addStep(newStep);
-        StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new DefaultStepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);        
+        StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new DefaultStepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);
         step.addOutcome(newStep.getId(), null);        
         
         return stepBuilder;        
+    }
+    
+    @Override
+    public StepBuilder<TData, ConsumerStep> then(Consumer<StepExecutionContext> body) {
+        WorkflowStep newStep = new WorkflowStep(ConsumerStep.class);
+        StepFieldConsumer<ConsumerStep, TData> bodyConsumer = (step, data) -> step.body = body;
+        newStep.addInput(bodyConsumer);        
+        workflowBuilder.addStep(newStep);
+        StepBuilder<TData, ConsumerStep> stepBuilder = new DefaultStepBuilder<>(dataClass, ConsumerStep.class, workflowBuilder, newStep);
+
+        return stepBuilder;
     }
     
     //@Override
@@ -177,5 +191,92 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         step.addChild(step.getId() + 1); //TODO: make more elegant
         return this;
     }
-    
+
+    @Override
+    public StepBuilder<TData, Delay> delay(Function<TData, Duration> duration) {
+        WorkflowStep newStep = new WorkflowStep(Delay.class);
+        StepFieldConsumer<Delay, TData> durationConsumer = (step, data) -> step.duration = duration.apply(data);
+        newStep.addInput(durationConsumer);
+        
+        workflowBuilder.addStep(newStep);        
+        StepBuilder<TData, Delay> stepBuilder = new DefaultStepBuilder<>(dataClass, Delay.class, workflowBuilder, newStep);
+        step.addOutcome(newStep.getId(), null);
+        return stepBuilder;
+    }
+
+    @Override
+    public ControlStepBuilder<TData, Schedule> schedule(Function<TData, Duration> duration) {
+        WorkflowStep newStep = new WorkflowStep(Schedule.class);
+        StepFieldConsumer<Schedule, TData> durationConsumer = (step, data) -> step.duration = duration.apply(data);
+        newStep.addInput(durationConsumer);
+        
+        workflowBuilder.addStep(newStep);        
+        ControlStepBuilder<TData, Schedule> stepBuilder = new DefaultStepBuilder<>(dataClass, Schedule.class, workflowBuilder, newStep);
+        step.addOutcome(newStep.getId(), null);
+        return stepBuilder;
+    }
+
+    @Override
+    public ParallelStepBuilder<TData, Sequence> parallel() {
+        WorkflowStep newStep = new WorkflowStep(Sequence.class);
+        StepBuilder<TData, Sequence> newBuilder = new DefaultStepBuilder(dataClass, Sequence.class, workflowBuilder, newStep);
+        workflowBuilder.addStep(newStep);        
+        ParallelStepBuilder<TData, Sequence> stepBuilder = new DefaultParallelStepBuilder(workflowBuilder, newBuilder, newBuilder);
+        step.addOutcome(newStep.getId(), null);
+        return stepBuilder;
+    }
+
+    @Override
+    public StepBuilder<TData, Sequence> saga(WorkflowBuilderConsumer<TData> consumer) {
+        SagaContainer newStep = new SagaContainer(Sequence.class);                
+        workflowBuilder.addStep(newStep);
+        StepBuilder<TData, Sequence> stepBuilder = new DefaultStepBuilder<>(dataClass, Sequence.class, workflowBuilder, newStep);
+        step.addOutcome(newStep.getId(), null);
+        consumer.accept(workflowBuilder);
+        stepBuilder.getStep().addChild(stepBuilder.getStep().getId() + 1);
+        
+        return stepBuilder;
+    }
+
+    @Override
+    public <TNewStep extends StepBody> StepBuilder<TData, TStep> compensateWith(Class<TNewStep> stepClass) {
+        return compensateWith(stepClass, null);
+    }
+
+    @Override
+    public <TNewStep extends StepBody> StepBuilder<TData, TStep> compensateWith(Class<TNewStep> stepClass, StepBuilderConsumer stepSetup) {
+        WorkflowStep newStep = new WorkflowStep(stepClass);        
+        newStep.setName(stepClass.getName());        
+        workflowBuilder.addStep(newStep);        
+        StepBuilder<TData, TNewStep> stepBuilder = new DefaultStepBuilder<>(dataClass, stepClass, workflowBuilder, newStep);
+                
+        if (stepSetup != null)
+            stepSetup.accept(stepBuilder);
+        
+        step.setCompensationStepId(newStep.getId());
+        
+        return this;
+    }
+
+    @Override
+    public StepBuilder<TData, TStep> compensateWith(StepExecutionConsumer body) {
+        WorkflowStepInline newStep = new WorkflowStepInline(body);
+        workflowBuilder.addStep(newStep);
+        step.setCompensationStepId(newStep.getId());
+        
+        return this;
+    }
+
+    @Override
+    public StepBuilder<TData, TStep> compensateWith(WorkflowBuilderConsumer<TData> consumer) {
+        WorkflowStep newStep = new WorkflowStep(Sequence.class);                
+        workflowBuilder.addStep(newStep);
+        StepBuilder<TData, Sequence> stepBuilder = new DefaultStepBuilder<>(dataClass, Sequence.class, workflowBuilder, newStep);
+        step.setCompensationStepId(newStep.getId());
+        consumer.accept(workflowBuilder);
+        stepBuilder.getStep().addChild(stepBuilder.getStep().getId() + 1);
+        
+        return this;
+    }
+
 }
