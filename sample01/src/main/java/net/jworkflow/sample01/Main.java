@@ -11,9 +11,10 @@ public class Main {
         Logger rootLogger = Logger.getLogger("");
         rootLogger.setLevel(Level.SEVERE); 
         
-        WorkflowModule.setup();
-        WorkflowHost host = WorkflowModule.getHost();
-                
+        WorkflowModule module = new WorkflowModule();
+        module.build();
+        WorkflowHost host = module.getHost();
+        
         host.registerWorkflow(HelloWorkflow.class);
         
         host.start();

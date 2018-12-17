@@ -20,7 +20,9 @@ public class WorkflowModule extends AbstractModule {
         persistenceProvider = Providers.of(new MemoryPersistenceService());
         queueProvider = Providers.of(new SingleNodeQueueService());
         lockProvider = Providers.of(new SingleNodeLockService());
-    }        
+    }
+    
+    private Injector injector;
     
     @Override 
     protected void configure() {        
@@ -41,37 +43,31 @@ public class WorkflowModule extends AbstractModule {
       bind(PersistenceService.class).toProvider(persistenceProvider);
       bind(LockService.class).to(SingleNodeLockService.class);
       bind(QueueService.class).to(SingleNodeQueueService.class);
-      
     }    
     
-    private static Injector injector;
-    
-    public static void setup() {
-        AbstractModule module = new WorkflowModule();        
-        injector = Guice.createInjector(module);        
+    public void build() {
+        injector = Guice.createInjector(this);        
     }
     
-    public static void setup(Provider<? extends PersistenceService> persistenceProvider) {
-        WorkflowModule module = new WorkflowModule();
-        module.persistenceProvider = persistenceProvider;
-        injector = Guice.createInjector(module);
+    public void usePersistence(Provider<? extends PersistenceService> persistenceProvider) {
+        this.persistenceProvider = persistenceProvider;
     }
     
-    public static void setup(Provider<? extends PersistenceService> persistenceProvider, Provider<? extends QueueService> queueProvider, Provider<? extends LockService> lockProvider) {
-        WorkflowModule module = new WorkflowModule();
-        module.persistenceProvider = persistenceProvider;
-        module.queueProvider = queueProvider;
-        module.lockProvider = lockProvider;
-        injector = Guice.createInjector(module);
+    public void useQueue(Provider<? extends QueueService> queueProvider) {
+        this.queueProvider = queueProvider;
     }
     
-    public static WorkflowHost getHost() {
+    public void useDistibutedLock(Provider<? extends LockService> lockProvider) {
+        this.lockProvider = lockProvider;
+    }
+    
+    public WorkflowHost getHost() {
         if (injector != null)
             return injector.getInstance(WorkflowHost.class);        
         return null;
     }
     
-    public static PersistenceService getPersistenceProvider() {
+    public PersistenceService getPersistenceProvider() {
         if (injector != null)
             return injector.getInstance(PersistenceService.class);        
         return null;

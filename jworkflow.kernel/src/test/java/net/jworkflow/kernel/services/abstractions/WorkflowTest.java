@@ -20,10 +20,10 @@ public abstract class WorkflowTest<TData> {
     protected abstract Workflow getWorkflow();
     
     protected void setup() throws Exception {
-        //WorkflowModule module = configure();
-        WorkflowModule.setup();
-        host = WorkflowModule.getHost();
-        persistence = WorkflowModule.getPersistenceProvider();
+        WorkflowModule module = new WorkflowModule();
+        module.build();
+        host = module.getHost();
+        persistence = module.getPersistenceProvider();
         host.registerWorkflow(getWorkflow());
         host.start();
     }

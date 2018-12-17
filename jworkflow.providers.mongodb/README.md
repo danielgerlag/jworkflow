@@ -34,5 +34,9 @@ import net.jworkflow.providers.mongodb.MongoPersistenceService;
 
 ...
 
-WorkflowModule.setup(MongoPersistenceService.configure("mongodb://localhost:27017/jworkflow"));
+WorkflowModule module = new WorkflowModule();
+module.usePersistence(MongoPersistenceService.configure("mongodb://localhost:27017/jworkflow"));
+module.build();
+WorkflowHost host = module.getHost();
+
 ```

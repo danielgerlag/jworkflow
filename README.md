@@ -273,8 +273,9 @@ When your application starts, create a WorkflowHost service, call *registerWorkf
 
 
 ```java
-WorkflowModule.setup();
-WorkflowHost host = WorkflowModule.getHost();
+WorkflowModule module = new WorkflowModule();
+module.build();
+WorkflowHost host = module.getHost();
         
 host.registerWorkflow(HelloWorkflow.class);
 
