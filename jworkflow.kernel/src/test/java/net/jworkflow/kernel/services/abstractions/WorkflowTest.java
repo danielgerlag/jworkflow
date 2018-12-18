@@ -1,6 +1,7 @@
 package net.jworkflow.kernel.services.abstractions;
 
 import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.Collection;
 import java.util.Date;
 import net.jworkflow.kernel.interfaces.PersistenceService;
@@ -62,7 +63,8 @@ public abstract class WorkflowTest<TData> {
     }
     
     protected Collection<EventSubscription> getActiveSubscriptons(String eventName, String eventKey) {
-        return (Collection<EventSubscription>) persistence.getSubcriptions(eventName, eventKey, Date.from(Instant.MAX));
+        Date effectiveDate = Date.from(Instant.now());
+        return (Collection<EventSubscription>) persistence.getSubcriptions(eventName, eventKey, effectiveDate);
     }
     
     protected void teardown() {
