@@ -18,7 +18,7 @@ public class SQSQueueService implements QueueService {
     private final Logger logger;
     private final String queuePrefix = "jworkflow-";
     private final Map<QueueType, String> queueUrls;
-    private final int waitTime = 5;
+    private final int waitTime = 2;
     
     public SQSQueueService(Region region, Logger logger) {
         this.logger = logger;
@@ -54,6 +54,11 @@ public class SQSQueueService implements QueueService {
         }
         
         return null;
+    }
+    
+    @Override
+    public boolean isDequeueBlocking() {
+        return true;
     }
     
     private String createQueue(QueueType type) {

@@ -38,5 +38,10 @@ public class SingleNodeQueueService implements QueueService{
                 return null;
         }         
     }
+
+    @Override
+    public boolean isDequeueBlocking() {
+        return false;
+    }
     
 }
