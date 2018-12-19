@@ -161,5 +161,5 @@ public class WorkflowStep {
     }
 
     public void afterWorkflowIteration(WorkflowExecutorResult executorResult, WorkflowDefinition defintion, WorkflowInstance workflow, ExecutionPointer executionPointer) {
-    }    
+    }
 }

@@ -4,6 +4,7 @@ import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.models.*;
 import net.jworkflow.kernel.interfaces.*;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.AbstractCollection;
 import java.util.Date;
 import java.util.List;
@@ -77,7 +78,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         WorkflowStepInline newStep = new WorkflowStepInline(body);
         workflowBuilder.addStep(newStep);
         StepBuilder<TData, WorkflowStepInline.InlineBody> stepBuilder = new DefaultStepBuilder<>(dataClass, WorkflowStepInline.InlineBody.class, workflowBuilder, newStep);
-        step.addOutcome(newStep.getId(), null);        
+        step.addOutcome(newStep.getId(), null);
         
         return stepBuilder;        
     }
@@ -89,7 +90,8 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         newStep.addInput(bodyConsumer);        
         workflowBuilder.addStep(newStep);
         StepBuilder<TData, ConsumerStep> stepBuilder = new DefaultStepBuilder<>(dataClass, ConsumerStep.class, workflowBuilder, newStep);
-
+        step.addOutcome(newStep.getId(), null);
+        
         return stepBuilder;
     }
     
@@ -136,7 +138,7 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     
     @Override
     public StepBuilder<TData, WaitFor> waitFor(String eventName, Function<TData, String> eventKey) {
-        return waitFor(eventName, eventKey, x -> new Date());
+        return waitFor(eventName, eventKey, x -> Date.from(Instant.now()));
     }    
     
     @Override
@@ -268,7 +270,18 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
     }
 
     @Override
-    public StepBuilder<TData, TStep> compensateWith(WorkflowBuilderConsumer<TData> consumer) {
+    public StepBuilder<TData, TStep> compensateWithAction(Consumer<StepExecutionContext> body) {
+        WorkflowStep newStep = new WorkflowStep(ConsumerStep.class);
+        StepFieldConsumer<ConsumerStep, TData> bodyConsumer = (step, data) -> step.body = body;
+        newStep.addInput(bodyConsumer);        
+        workflowBuilder.addStep(newStep);
+        step.setCompensationStepId(newStep.getId());
+        
+        return this;
+    }
+    
+    @Override
+    public StepBuilder<TData, TStep> compensateWithSequence(WorkflowBuilderConsumer<TData> consumer) {
         WorkflowStep newStep = new WorkflowStep(Sequence.class);                
         workflowBuilder.addStep(newStep);
         StepBuilder<TData, Sequence> stepBuilder = new DefaultStepBuilder<>(dataClass, Sequence.class, workflowBuilder, newStep);
@@ -278,5 +291,4 @@ public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBu
         
         return this;
     }
-
 }

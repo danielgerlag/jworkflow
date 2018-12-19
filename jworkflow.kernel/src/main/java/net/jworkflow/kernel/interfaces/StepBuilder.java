@@ -166,6 +166,8 @@ public interface StepBuilder<TData, TStep extends StepBody> {
     
     StepBuilder<TData, TStep> compensateWith(StepExecutionConsumer body);
     
-    StepBuilder<TData, TStep> compensateWith(WorkflowBuilderConsumer<TData> consumer);
+    StepBuilder<TData, TStep> compensateWithAction(Consumer<StepExecutionContext> body);
+    
+    StepBuilder<TData, TStep> compensateWithSequence(WorkflowBuilderConsumer<TData> consumer);    
 
 }

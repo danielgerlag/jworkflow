@@ -1,7 +1,10 @@
 package net.jworkflow.kernel.scenarios;
 
+import java.time.Instant;
+import java.util.Date;
 import net.jworkflow.kernel.interfaces.Workflow;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
+import net.jworkflow.kernel.models.ExecutionResult;
 import net.jworkflow.kernel.services.abstractions.WorkflowTest;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -47,7 +50,7 @@ public class EventScenario extends WorkflowTest {
         return new EventWorkflow();
     }
     
-    //@Test
+    @Test
     public void Scenario() throws Exception {
         setup();
         MyData data = new MyData();
@@ -56,7 +59,7 @@ public class EventScenario extends WorkflowTest {
         waitForEventSubscription("event", "key");
         assertEquals(1, step1Ticker);
         assertEquals(0, step2Ticker);        
-        host.publishEvent("event", "key", 7, null);
+        host.publishEvent("event", "key", 7, new Date());
         waitForWorkflowToComplete(workflowId);
         
         assertEquals(1, step1Ticker);

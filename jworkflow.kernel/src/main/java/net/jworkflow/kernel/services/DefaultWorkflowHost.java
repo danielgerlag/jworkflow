@@ -11,6 +11,7 @@ import net.jworkflow.kernel.interfaces.*;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,13 +35,14 @@ public class DefaultWorkflowHost implements WorkflowHost {
     private final ExecutionPointerFactory pointerFactory;
     private final List<ScheduledFuture> workerFutures;
     private final ScheduledExecutorService scheduler;
+    private final Clock clock;
     private final Injector injector;
     private final Logger logger;
     
     private ScheduledFuture pollFuture;
     
     @Inject
-    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, ExecutionPointerFactory pointerFactory, Injector injector, Logger logger) {
+    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, ExecutionPointerFactory pointerFactory, Clock clock, Injector injector, Logger logger) {
         
         Runtime runtime = Runtime.getRuntime();
         
@@ -49,6 +51,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
         this.lockProvider = lockProvider;
         this.registry = registry;        
         this.pointerFactory = pointerFactory;
+        this.clock = clock;
         this.injector = injector;
         this.logger = logger;
         this.scheduler = Executors.newScheduledThreadPool(runtime.availableProcessors());
@@ -74,7 +77,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
         wf.setData(data);
         wf.setDescription(def.getDescription());
         wf.setNextExecution((long)0);
-        wf.setCreateTimeUtc(Date.from(Instant.now()));
+        wf.setCreateTimeUtc(Date.from(Instant.now(clock)));
         wf.setStatus(WorkflowStatus.RUNNABLE);
         
         if ((def.getDataType() != null) && (data == null)) {
@@ -129,7 +132,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
         if (!active)
             throw new Exception("Host is not running");
 
-        logger.log(Level.INFO, String.format("Creating event %s %s", eventName, eventName, eventKey));
+        logger.log(Level.INFO, String.format("Creating event %s %s", eventName, eventKey));
         
         Event evt = new Event();
 
@@ -137,7 +140,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
         if (effectiveDateUtc != null)
             evt.eventTimeUtc = effectiveDateUtc;
         else
-            evt.eventTimeUtc = new Date();
+            evt.eventTimeUtc = Date.from(Instant.now(clock));
 
         evt.eventData = eventData;
         evt.eventKey = eventKey;
