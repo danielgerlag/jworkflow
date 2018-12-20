@@ -72,7 +72,14 @@ public class DefaultWorkflowRegistry implements WorkflowRegistry{
         
         logger.log(Level.INFO, String.format("Registered workflow %s %s", workflow.getId(), workflow.getVersion()));
     }
-
+    
+    @Override
+    public void registerWorkflow(WorkflowDefinition definition) throws Exception {
+        RegistryEntry entry = new RegistryEntry(definition.getId(), definition.getVersion(), definition);        
+        registry.add(entry);        
+        logger.log(Level.INFO, String.format("Registered workflow %s %s", definition.getId(), definition.getVersion()));
+    }
+    
     @Override
     public WorkflowDefinition getDefinition(String workflowId, int version) {
         for (RegistryEntry item : registry) {

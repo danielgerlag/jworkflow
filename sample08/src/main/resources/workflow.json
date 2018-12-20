@@ -1,0 +1,15 @@
+{
+  "id": "test-workflow",
+  "version": 1,
+  "steps": [
+    {
+      "id": "step1",
+      "stepType": "net.jworkflow.sample08.steps.Hello",
+      "nextStepId": "step2"
+    },
+    {
+      "id": "step2",
+      "stepType": "net.jworkflow.sample08.steps.Goodbye"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 package net.jworkflow.sample06;
 
 import net.jworkflow.kernel.interfaces.WorkflowHost;
-import net.jworkflow.kernel.services.WorkflowModule;
+import net.jworkflow.WorkflowModule;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;

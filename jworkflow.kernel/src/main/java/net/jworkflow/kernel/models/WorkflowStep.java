@@ -19,6 +19,7 @@ public class WorkflowStep {
     private ErrorBehavior retryBehavior;
     private Duration retryInterval;
     private Integer compensationStepId;
+    private String tag;
 
     public WorkflowStep(Class bodyType) {
         this.outcomes = new ArrayList<>();
@@ -142,6 +143,14 @@ public class WorkflowStep {
 
     public void setChildren(List<Integer> children) {
         this.children = children;
+    }
+    
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public Integer getCompensationStepId() {

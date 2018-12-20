@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import net.jworkflow.kernel.models.ErrorBehavior;
 
 public class DefinitionSource {
+    
+    public int schemaVersion;
 
     public String id;
     

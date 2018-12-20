@@ -1,7 +1,7 @@
 package net.jworkflow.sample03;
 
 import net.jworkflow.kernel.interfaces.WorkflowHost;
-import net.jworkflow.kernel.services.WorkflowModule;
+import net.jworkflow.WorkflowModule;
 import net.jworkflow.providers.mongodb.MongoPersistenceService;
 import java.util.Date;
 import java.util.Scanner;

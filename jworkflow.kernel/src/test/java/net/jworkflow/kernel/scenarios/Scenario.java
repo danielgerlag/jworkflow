@@ -4,7 +4,7 @@ import net.jworkflow.kernel.interfaces.Workflow;
 import net.jworkflow.kernel.interfaces.WorkflowHost;
 import net.jworkflow.kernel.models.WorkflowInstance;
 import net.jworkflow.kernel.models.WorkflowStatus;
-import net.jworkflow.kernel.services.WorkflowModule;
+import net.jworkflow.WorkflowModule;
 import net.jworkflow.kernel.interfaces.PersistenceService;
 
 public abstract class Scenario {

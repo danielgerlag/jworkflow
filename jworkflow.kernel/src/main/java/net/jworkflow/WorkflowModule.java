@@ -1,4 +1,4 @@
-package net.jworkflow.kernel.services;
+package net.jworkflow;
 
 import net.jworkflow.kernel.interfaces.*;
 import com.google.inject.AbstractModule;
@@ -8,6 +8,18 @@ import com.google.inject.Provider;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.util.Providers;
 import java.time.Clock;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import net.jworkflow.definitionstorage.services.DefaultDefinitionLoader;
+import net.jworkflow.definitionstorage.services.DefinitionLoader;
+import net.jworkflow.kernel.services.DefaultExecutionPointerFactory;
+import net.jworkflow.kernel.services.DefaultExecutionResultProcessor;
+import net.jworkflow.kernel.services.DefaultWorkflowExecutor;
+import net.jworkflow.kernel.services.DefaultWorkflowHost;
+import net.jworkflow.kernel.services.DefaultWorkflowRegistry;
+import net.jworkflow.kernel.services.MemoryPersistenceService;
+import net.jworkflow.kernel.services.SingleNodeLockService;
+import net.jworkflow.kernel.services.SingleNodeQueueService;
 import net.jworkflow.kernel.services.errorhandlers.*;
 
 public class WorkflowModule extends AbstractModule {  
@@ -31,7 +43,9 @@ public class WorkflowModule extends AbstractModule {
       bind(WorkflowRegistry.class).to(DefaultWorkflowRegistry.class);
       bind(ExecutionPointerFactory.class).to(DefaultExecutionPointerFactory.class);
       bind(ExecutionResultProcessor.class).to(DefaultExecutionResultProcessor.class);
+      bind(DefinitionLoader.class).to(DefaultDefinitionLoader.class);
       bind(Clock.class).toInstance(Clock.systemUTC());
+      bind(ScriptEngine.class).toInstance(new ScriptEngineManager().getEngineByName("nashorn"));
       
       Multibinder<StepErrorHandler> errorHandlerBinder = Multibinder.newSetBinder(binder(), StepErrorHandler.class);
       errorHandlerBinder.addBinding().to(RetryHandler.class);
@@ -70,6 +84,12 @@ public class WorkflowModule extends AbstractModule {
     public PersistenceService getPersistenceProvider() {
         if (injector != null)
             return injector.getInstance(PersistenceService.class);        
+        return null;
+    }
+    
+    public DefinitionLoader getLoader() {
+        if (injector != null)
+            return injector.getInstance(DefinitionLoader.class);        
         return null;
     }
 }
