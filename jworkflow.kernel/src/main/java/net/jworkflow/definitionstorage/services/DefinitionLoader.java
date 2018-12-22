@@ -4,6 +4,6 @@ import net.jworkflow.kernel.models.WorkflowDefinition;
 
 public interface DefinitionLoader {
 
-    WorkflowDefinition loadDefinition(String json) throws Exception;
+    WorkflowDefinition loadFromJson(String json) throws Exception;
     
 }

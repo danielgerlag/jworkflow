@@ -1,5 +1,9 @@
 package net.jworkflow;
 
+import net.jworkflow.kernel.errorhandlers.RetryHandler;
+import net.jworkflow.kernel.errorhandlers.CompensateHandler;
+import net.jworkflow.kernel.errorhandlers.TerminateHandler;
+import net.jworkflow.kernel.errorhandlers.SuspendHandler;
 import net.jworkflow.kernel.interfaces.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -20,7 +24,6 @@ import net.jworkflow.kernel.services.DefaultWorkflowRegistry;
 import net.jworkflow.kernel.services.MemoryPersistenceService;
 import net.jworkflow.kernel.services.SingleNodeLockService;
 import net.jworkflow.kernel.services.SingleNodeQueueService;
-import net.jworkflow.kernel.services.errorhandlers.*;
 
 public class WorkflowModule extends AbstractModule {  
     
@@ -53,10 +56,9 @@ public class WorkflowModule extends AbstractModule {
       errorHandlerBinder.addBinding().to(SuspendHandler.class);
       errorHandlerBinder.addBinding().to(TerminateHandler.class);
                   
-      //
       bind(PersistenceService.class).toProvider(persistenceProvider);
-      bind(LockService.class).to(SingleNodeLockService.class);
-      bind(QueueService.class).to(SingleNodeQueueService.class);
+      bind(LockService.class).toProvider(lockProvider).asEagerSingleton();
+      bind(QueueService.class).toProvider(queueProvider).asEagerSingleton();
     }    
     
     public void build() {

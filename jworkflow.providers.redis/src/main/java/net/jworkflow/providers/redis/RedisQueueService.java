@@ -13,13 +13,11 @@ import org.redisson.config.Config;
 public class RedisQueueService implements QueueService {
 
     private final RedissonClient client;
-    private final Logger logger;
     private final String queuePrefix = "jworkflow-";
     private final Map<QueueType, Queue> queues;
     private final int waitTime = 5;
     
-    public RedisQueueService(Config config, Logger logger) {
-        this.logger = logger;
+    public RedisQueueService(Config config) {
         client = Redisson.create(config);
 
         queues = new HashMap<>();

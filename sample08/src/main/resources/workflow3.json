@@ -1,0 +1,33 @@
+{
+  "id": "test-workflow",
+  "version": 1,
+  "dataType": "net.jworkflow.sample08.MyData",
+  "steps": [
+    {
+      "id": "step1",
+      "stepType": "net.jworkflow.sample08.steps.Hello",
+      "nextStepId": "step2"
+    },
+    {
+      "id": "step2",
+      "stepType": "net.jworkflow.primitives.Foreach",
+      "nextStepId": "step3",
+      "inputs": {
+          "collection": "data.collection1"
+      },
+      "thenDo": [[
+          {
+            "id": "step2.1",
+            "stepType": "net.jworkflow.sample08.steps.PrintMessage",
+            "inputs": {
+                "message": "'doing 2.1'"
+            }
+          }
+      ]]
+    },    
+    {
+      "id": "step3",
+      "stepType": "net.jworkflow.sample08.steps.Goodbye"
+    }
+  ]
+}

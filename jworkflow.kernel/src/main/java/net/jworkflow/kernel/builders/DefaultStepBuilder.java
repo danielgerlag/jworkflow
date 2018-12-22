@@ -1,5 +1,5 @@
-package net.jworkflow.kernel.services;
-import net.jworkflow.kernel.steps.WaitFor;
+package net.jworkflow.kernel.builders;
+import net.jworkflow.primitives.WaitFor;
 import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.models.*;
 import net.jworkflow.kernel.interfaces.*;
@@ -10,14 +10,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import net.jworkflow.kernel.steps.ConsumerStep;
-import net.jworkflow.kernel.steps.Delay;
-import net.jworkflow.kernel.steps.Foreach;
-import net.jworkflow.kernel.steps.If;
-import net.jworkflow.kernel.steps.SagaContainer;
-import net.jworkflow.kernel.steps.Schedule;
-import net.jworkflow.kernel.steps.Sequence;
-import net.jworkflow.kernel.steps.While;
+import net.jworkflow.primitives.ConsumerStep;
+import net.jworkflow.primitives.Delay;
+import net.jworkflow.primitives.Foreach;
+import net.jworkflow.primitives.If;
+import net.jworkflow.primitives.SagaContainer;
+import net.jworkflow.primitives.Schedule;
+import net.jworkflow.primitives.Sequence;
+import net.jworkflow.primitives.While;
 
 public class DefaultStepBuilder<TData, TStep extends StepBody> implements StepBuilder<TData, TStep>, ControlStepBuilder<TData, TStep> {
         

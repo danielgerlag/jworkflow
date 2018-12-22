@@ -1,5 +1,6 @@
 package net.jworkflow.providers.aws;
 
+import com.google.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
+@Singleton
 public class SQSQueueService implements QueueService {
 
     private final SqsClient sqsClient;
@@ -20,8 +22,8 @@ public class SQSQueueService implements QueueService {
     private final Map<QueueType, String> queueUrls;
     private final int waitTime = 2;
     
-    public SQSQueueService(Region region, Logger logger) {
-        this.logger = logger;
+    public SQSQueueService(Region region) {
+        this.logger = Logger.getLogger(SQSQueueService.class.getName());
         sqsClient = SqsClient.builder()
                 .region(region)
                 .build();
@@ -46,10 +48,15 @@ public class SQSQueueService implements QueueService {
         ReceiveMessageResponse response = sqsClient.receiveMessage(x -> x
                 .maxNumberOfMessages(1)
                 .waitTimeSeconds(waitTime)
-                .queueUrl(queueUrls.get(type))                
+                .queueUrl(queueUrls.get(type))
         );
         
         for (Message msg: response.messages()) {
+            sqsClient.deleteMessage(x -> x
+                .queueUrl(queueUrls.get(type))
+                .receiptHandle(msg.receiptHandle())
+            );
+            
             return msg.body();
         }
         

@@ -1,4 +1,4 @@
-package net.jworkflow.kernel.services;
+package net.jworkflow.kernel.builders;
 
 import net.jworkflow.kernel.interfaces.ParallelStepBuilder;
 import net.jworkflow.kernel.interfaces.StepBody;
@@ -6,7 +6,7 @@ import net.jworkflow.kernel.interfaces.StepBuilder;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 import net.jworkflow.kernel.interfaces.WorkflowBuilderConsumer;
 import net.jworkflow.kernel.models.WorkflowStep;
-import net.jworkflow.kernel.steps.Sequence;
+import net.jworkflow.primitives.Sequence;
 
 public class DefaultParallelStepBuilder <TData, TStep extends StepBody> implements ParallelStepBuilder<TData, TStep> {
 

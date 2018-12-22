@@ -1,12 +1,10 @@
 package net.jworkflow.sample08;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Enumeration;
 import net.jworkflow.kernel.interfaces.WorkflowHost;
 import net.jworkflow.WorkflowModule;
 import java.util.Scanner;
@@ -15,18 +13,23 @@ import java.util.logging.Logger;
 
 public class Main {
     public static void main(String[] args) throws Exception {        
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(Level.SEVERE); 
         
-        
-        String str = readResource("workflow.json");
+        String str = readResource("workflow5.json");
         //System.out.println(str);
         WorkflowModule module = new WorkflowModule();
         module.build();
         WorkflowHost host = module.getHost();
-        module.getLoader().loadDefinition(str);
+        module.getLoader().loadFromJson(str);
         
         host.start();
         
-        String id = host.startWorkflow("test-workflow", 1, null);
+        MyData data = new MyData();
+        data.value1 = 2;
+        data.value2 = 3;
+        data.collection1 = new Object[2];
+        String id = host.startWorkflow("test-workflow", 1, data);
         System.out.println("started workflow " + id);
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();        

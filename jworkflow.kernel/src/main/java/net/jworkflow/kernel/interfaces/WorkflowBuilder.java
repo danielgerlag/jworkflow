@@ -5,7 +5,7 @@ import net.jworkflow.kernel.models.StepExecutionContext;
 import net.jworkflow.kernel.models.WorkflowDefinition;
 import net.jworkflow.kernel.models.WorkflowStep;
 import net.jworkflow.kernel.models.WorkflowStepInline;
-import net.jworkflow.kernel.steps.ConsumerStep;
+import net.jworkflow.primitives.ConsumerStep;
 
 public interface WorkflowBuilder<TData> {
     void addStep(WorkflowStep step);

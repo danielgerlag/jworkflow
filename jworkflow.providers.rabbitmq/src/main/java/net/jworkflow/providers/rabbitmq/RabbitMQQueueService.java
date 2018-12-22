@@ -23,8 +23,8 @@ public class RabbitMQQueueService implements QueueService {
     private final Map<QueueType, String> queueNames;
     private final int waitTime = 5;
     
-    public RabbitMQQueueService(ConnectionFactory connectionFactory, Logger logger) throws IOException, TimeoutException {
-        this.logger = logger;        
+    public RabbitMQQueueService(ConnectionFactory connectionFactory) throws IOException, TimeoutException {
+        this.logger = Logger.getLogger(getClass().getName());        
         connection = connectionFactory.newConnection();                
         queueNames = new HashMap<>();
         queueNames.put(QueueType.WORKFLOW, createQueue(QueueType.WORKFLOW));

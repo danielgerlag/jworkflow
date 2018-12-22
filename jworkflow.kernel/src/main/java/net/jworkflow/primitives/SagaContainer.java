@@ -1,4 +1,4 @@
-package net.jworkflow.kernel.steps;
+package net.jworkflow.primitives;
 
 import net.jworkflow.kernel.models.ExecutionPointer;
 import net.jworkflow.kernel.models.WorkflowStep;

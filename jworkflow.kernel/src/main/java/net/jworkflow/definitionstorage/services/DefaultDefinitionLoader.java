@@ -18,8 +18,8 @@ import net.jworkflow.definitionstorage.models.*;
 import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.interfaces.WorkflowRegistry;
 import net.jworkflow.kernel.models.*;
-import net.jworkflow.kernel.steps.CancellableStep;
-import net.jworkflow.kernel.steps.SagaContainer;
+import net.jworkflow.primitives.CancellableStep;
+import net.jworkflow.primitives.SagaContainer;
 
 public class DefaultDefinitionLoader implements DefinitionLoader {
 
@@ -35,7 +35,7 @@ public class DefaultDefinitionLoader implements DefinitionLoader {
     }
 
     @Override
-    public WorkflowDefinition loadDefinition(String json) throws Exception {
+    public WorkflowDefinition loadFromJson(String json) throws Exception {
         DefinitionSource source = gson.fromJson(json, DefinitionSource.class);
         WorkflowDefinition def = convert(source);
         registry.registerWorkflow(def);
@@ -100,14 +100,14 @@ public class DefaultDefinitionLoader implements DefinitionLoader {
             attachInputs(nextStep, dataType, stepType, targetStep);
             attachOutputs(nextStep, dataType, stepType, targetStep);
 
-            if (nextStep.Do != null) {
-                for (List<StepSource> branch: nextStep.Do) {
+            if (nextStep.thenDo != null) {
+                for (List<StepSource> branch: nextStep.thenDo) {
                     reverse(branch).stream().forEach((child) -> {
                         stack.push(child);
                     });
                 }
 
-                if (!nextStep.Do.isEmpty())
+                if (!nextStep.thenDo.isEmpty())
                     parents.add(nextStep);
             }
 
@@ -146,7 +146,7 @@ public class DefaultDefinitionLoader implements DefinitionLoader {
 
         for (StepSource parent: parents) {
             WorkflowStep target = result.stream().filter(x -> x.getTag() == parent.id).findFirst().get();
-            for (List<StepSource> branch: parent.Do) {
+            for (List<StepSource> branch: parent.thenDo) {
                 
                 List<String> childTags = branch
                     .stream()

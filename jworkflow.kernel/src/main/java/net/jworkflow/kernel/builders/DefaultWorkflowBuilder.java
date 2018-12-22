@@ -1,4 +1,4 @@
-package net.jworkflow.kernel.services;
+package net.jworkflow.kernel.builders;
 
 import java.util.Comparator;
 import net.jworkflow.kernel.models.WorkflowDefinition;
@@ -13,7 +13,7 @@ import net.jworkflow.kernel.interfaces.StepFieldConsumer;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 import net.jworkflow.kernel.models.StepExecutionContext;
 import net.jworkflow.kernel.models.WorkflowStepInline;
-import net.jworkflow.kernel.steps.ConsumerStep;
+import net.jworkflow.primitives.ConsumerStep;
 
 public class DefaultWorkflowBuilder<TData> extends BaseWorkflowBuilder implements WorkflowBuilder<TData> {
     

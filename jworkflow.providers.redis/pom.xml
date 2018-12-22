@@ -4,7 +4,7 @@
     <groupId>net.jworkflow</groupId>
     <artifactId>jworkflow.providers.redis</artifactId>
     <version>0.4-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <url>http://github.com/danielgerlag/jworkflow</url>
     
     <licenses>

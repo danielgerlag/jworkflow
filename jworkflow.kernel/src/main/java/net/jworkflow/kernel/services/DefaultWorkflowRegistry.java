@@ -1,4 +1,5 @@
 package net.jworkflow.kernel.services;
+import net.jworkflow.kernel.builders.BaseWorkflowBuilder;
 import net.jworkflow.kernel.models.WorkflowDefinition;
 import net.jworkflow.kernel.interfaces.WorkflowRegistry;
 import net.jworkflow.kernel.interfaces.Workflow;

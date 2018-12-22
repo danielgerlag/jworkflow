@@ -18,8 +18,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 import net.jworkflow.kernel.models.WorkflowDefinition;
-import net.jworkflow.kernel.services.BaseWorkflowBuilder;
-import net.jworkflow.kernel.services.DefaultWorkflowBuilder;
+import net.jworkflow.kernel.builders.BaseWorkflowBuilder;
+import net.jworkflow.kernel.builders.DefaultWorkflowBuilder;
 import net.jworkflow.sample01.HelloWorkflow;
 
 public class Main {

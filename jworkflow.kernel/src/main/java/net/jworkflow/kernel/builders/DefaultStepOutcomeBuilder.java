@@ -1,4 +1,4 @@
-package net.jworkflow.kernel.services;
+package net.jworkflow.kernel.builders;
 import net.jworkflow.kernel.interfaces.StepOutcomeBuilder;
 import net.jworkflow.kernel.models.*;
 import net.jworkflow.kernel.interfaces.StepBody;

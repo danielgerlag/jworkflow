@@ -1,4 +1,4 @@
-package net.jworkflow.kernel.steps;
+package net.jworkflow.primitives;
 
 import java.util.Date;
 import net.jworkflow.kernel.interfaces.StepBody;

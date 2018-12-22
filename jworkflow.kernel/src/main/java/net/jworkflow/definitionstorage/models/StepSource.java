@@ -21,7 +21,7 @@ public class StepSource {
 
     public Duration retryInterval;
 
-    public List<List<StepSource>> Do = new ArrayList<>();
+    public List<List<StepSource>> thenDo = new ArrayList<>();
 
     public List<StepSource> compensateWith = new ArrayList<>();
 

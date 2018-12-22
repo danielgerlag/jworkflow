@@ -3,14 +3,15 @@ package net.jworkflow.sample08.steps;
 import net.jworkflow.kernel.interfaces.StepBody;
 import net.jworkflow.kernel.models.*;
 
-public class IncrementValue implements StepBody {
+public class AddNumbers implements StepBody {
 
-    public int value;
+    public int value1;
+    public int value2;
+    public int result;
     
     @Override
     public ExecutionResult run(StepExecutionContext context) {
-        System.out.println("Incrementing...");
-        value++;
+        result = value1 + value2;
         return ExecutionResult.next();
     }    
 }

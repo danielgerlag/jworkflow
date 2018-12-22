@@ -1,4 +1,4 @@
-package net.jworkflow.kernel.services.errorhandlers;
+package net.jworkflow.kernel.errorhandlers;
 
 import com.google.inject.Singleton;
 import java.util.Queue;
