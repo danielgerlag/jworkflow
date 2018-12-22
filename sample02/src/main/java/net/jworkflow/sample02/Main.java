@@ -1,7 +1,7 @@
 package net.jworkflow.sample02;
 
 import net.jworkflow.kernel.interfaces.WorkflowHost;
-import net.jworkflow.kernel.services.WorkflowModule;
+import net.jworkflow.WorkflowModule;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,9 +12,10 @@ public class Main {
         Logger rootLogger = Logger.getLogger("");
         rootLogger.setLevel(Level.SEVERE); 
                                 
-        WorkflowModule.setup();        
-        WorkflowHost host = WorkflowModule.getHost();
-                
+        WorkflowModule module = new WorkflowModule();
+        module.build();
+        WorkflowHost host = module.getHost();
+        
         host.registerWorkflow(DataWorkflow.class);
         
         host.start();

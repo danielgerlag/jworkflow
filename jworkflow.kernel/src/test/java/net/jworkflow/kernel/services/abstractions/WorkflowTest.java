@@ -10,7 +10,7 @@ import net.jworkflow.kernel.interfaces.WorkflowHost;
 import net.jworkflow.kernel.models.EventSubscription;
 import net.jworkflow.kernel.models.WorkflowInstance;
 import net.jworkflow.kernel.models.WorkflowStatus;
-import net.jworkflow.kernel.services.WorkflowModule;
+import net.jworkflow.WorkflowModule;
 
 public abstract class WorkflowTest<TData> {
     
@@ -21,10 +21,10 @@ public abstract class WorkflowTest<TData> {
     protected abstract Workflow getWorkflow();
     
     protected void setup() throws Exception {
-        //WorkflowModule module = configure();
-        WorkflowModule.setup();
-        host = WorkflowModule.getHost();
-        persistence = WorkflowModule.getPersistenceProvider();
+        WorkflowModule module = new WorkflowModule();
+        module.build();
+        host = module.getHost();
+        persistence = module.getPersistenceProvider();
         host.registerWorkflow(getWorkflow());
         host.start();
     }

@@ -32,29 +32,34 @@ public class EventThread implements Runnable {
     public void run() {
         try {
             String eventId = queueProvider.dequeueForProcessing(QueueType.EVENT);
-            if (eventId != null) {
-                if (lockProvider.acquireLock("evt:" + eventId)) {
-                    
-                    try {
-                        Event evt = persistenceProvider.getEvent(eventId);
-                        if (evt.eventTimeUtc.before(new Date())) {
-                            Iterable<EventSubscription> subs = persistenceProvider.getSubcriptions(evt.eventName, evt.eventKey, evt.eventTimeUtc);
-                            boolean success = true;
-
-                            for (EventSubscription sub : subs)
-                                success = success && seedSubscription(evt, sub);
-
-                            if (success)
-                                persistenceProvider.markEventProcessed(eventId);
-                        }
-                    }
-                    finally {
-                        lockProvider.releaseLock("evt:" + eventId);                        
-                    }
+            
+            if (eventId == null) {
+                if (!queueProvider.isDequeueBlocking()) {
+                    Thread.sleep(1000);
                 }
-                else {
-                    logger.log(Level.INFO, String.format("Event %s locked", eventId));
+                return;
+            }
+            
+            if (!lockProvider.acquireLock("evt:" + eventId)) {
+                logger.log(Level.INFO, String.format("Event %s locked", eventId));
+                return;
+            }
+            
+            try {
+                Event evt = persistenceProvider.getEvent(eventId);
+                if (evt.eventTimeUtc.before(new Date())) {
+                    Iterable<EventSubscription> subs = persistenceProvider.getSubcriptions(evt.eventName, evt.eventKey, evt.eventTimeUtc);
+                    boolean success = true;
+
+                    for (EventSubscription sub : subs)
+                        success = success && seedSubscription(evt, sub);
+
+                    if (success)
+                        persistenceProvider.markEventProcessed(eventId);
                 }
+            }
+            finally {
+                lockProvider.releaseLock("evt:" + eventId);                        
             }
         }
         catch (Exception ex) {
@@ -64,43 +69,37 @@ public class EventThread implements Runnable {
     }
     
     private boolean seedSubscription(Event evt, EventSubscription sub) {
-        if (lockProvider.acquireLock(sub.workflowId))
-        {
-            try
-            {
-                WorkflowInstance workflow = persistenceProvider.getWorkflowInstance(sub.workflowId);
-                ExecutionPointer[] pointers = workflow.getExecutionPointers().stream()
-                        .filter(p -> p.eventName != null && p.eventKey != null && !p.eventPublished)
-                        .filter(p -> p.eventName.equals(sub.eventName) && p.eventKey.equals(sub.eventKey))
-                        .toArray(ExecutionPointer[]::new);
-                                
-                for (ExecutionPointer p: pointers) {
-                    p.eventData = evt.eventData;
-                    p.eventPublished = true;
-                    p.active = true;
-                }
-                
-                workflow.setNextExecution((long)0);
-                persistenceProvider.persistWorkflow(workflow);
-                persistenceProvider.terminateSubscription(sub.id);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.SEVERE, ex.toString());
-                return false;
-            }
-            finally
-            {
-                lockProvider.releaseLock(sub.workflowId);
-                queueProvider.queueForProcessing(QueueType.WORKFLOW, sub.workflowId);
-            }
-        }
-        else
-        {
+        if (!lockProvider.acquireLock(sub.workflowId)) {
             logger.log(Level.FINE, "Workflow locked {0}", sub.workflowId);
             return false;
         }
+                
+        try
+        {
+            WorkflowInstance workflow = persistenceProvider.getWorkflowInstance(sub.workflowId);
+            ExecutionPointer[] pointers = workflow.getExecutionPointers().stream()
+                    .filter(p -> p.eventName != null && p.eventKey != null && !p.eventPublished)
+                    .filter(p -> p.eventName.equals(sub.eventName) && p.eventKey.equals(sub.eventKey))
+                    .toArray(ExecutionPointer[]::new);
+
+            for (ExecutionPointer p: pointers) {
+                p.eventData = evt.eventData;
+                p.eventPublished = true;
+                p.active = true;
+            }
+
+            workflow.setNextExecution((long)0);
+            persistenceProvider.persistWorkflow(workflow);
+            persistenceProvider.terminateSubscription(sub.id);
+            return true;
+        }
+        catch (Exception ex) {
+            logger.log(Level.SEVERE, ex.toString());
+            return false;
+        }
+        finally {
+            lockProvider.releaseLock(sub.workflowId);
+            queueProvider.queueForProcessing(QueueType.WORKFLOW, sub.workflowId);
+        }        
     }
-    
 }

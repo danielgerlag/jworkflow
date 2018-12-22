@@ -11,7 +11,7 @@ Provides support to persist workflows running on [JWorkflow](../README.md) to a 
     <dependency>
         <groupId>net.jworkflow</groupId>
         <artifactId>jworkflow.providers.mongodb</artifactId>
-        <version>0.2</version>
+        <version>0.4</version>
     </dependency>
 </dependencies>
 ```
@@ -20,7 +20,7 @@ Provides support to persist workflows running on [JWorkflow](../README.md) to a 
 
 ```Gradle
 dependencies { 
-    compile 'net.jworkflow:jworkflow.providers.mongodb:0.2'
+    compile 'net.jworkflow:jworkflow.providers.mongodb:0.4'
 }
 ```
 
@@ -34,5 +34,9 @@ import net.jworkflow.providers.mongodb.MongoPersistenceService;
 
 ...
 
-WorkflowModule.setup(MongoPersistenceService.configure("mongodb://localhost:27017/jworkflow"));
+WorkflowModule module = new WorkflowModule();
+module.usePersistence(MongoPersistenceService.configure("mongodb://localhost:27017/jworkflow"));
+module.build();
+WorkflowHost host = module.getHost();
+
 ```

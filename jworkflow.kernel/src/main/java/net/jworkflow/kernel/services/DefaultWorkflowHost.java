@@ -95,6 +95,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
     @Override
     public void start() {
         active = true;
+        lockProvider.start();
         
         WorkflowThread wfWorker = injector.getInstance(WorkflowThread.class);            
         workerFutures.add(scheduler.scheduleAtFixedRate(wfWorker, 100, 100, TimeUnit.MILLISECONDS));
@@ -114,6 +115,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
             worker.cancel(false);
         });
         workerFutures.clear();
+        lockProvider.stop();
     }
 
     @Override

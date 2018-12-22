@@ -4,13 +4,15 @@ import net.jworkflow.kernel.interfaces.Workflow;
 import net.jworkflow.kernel.interfaces.WorkflowHost;
 import net.jworkflow.kernel.models.WorkflowInstance;
 import net.jworkflow.kernel.models.WorkflowStatus;
-import net.jworkflow.kernel.services.WorkflowModule;
+import net.jworkflow.WorkflowModule;
 import net.jworkflow.kernel.interfaces.PersistenceService;
 
 public abstract class Scenario {
 
     protected String WorkflowDefId;
     protected int WorkflowVersion;
+    protected WorkflowHost host;
+    protected PersistenceService persistence;
 
     public Scenario() {
         this.WorkflowDefId = "scenario";
@@ -18,13 +20,15 @@ public abstract class Scenario {
     }
     
     protected void setupWorkflow() {
-        WorkflowModule.setup();
+        WorkflowModule module = new WorkflowModule();
+        module.build();
+        host = module.getHost();
+        persistence = module.getPersistenceProvider();
     }
         
     protected WorkflowInstance runWorkflow(Workflow workflow, Object data) throws Exception{
         setupWorkflow();
-        WorkflowHost host = WorkflowModule.getHost();
-        PersistenceService persistence = WorkflowModule.getPersistenceProvider();
+        
         host.registerWorkflow(workflow);
         
         host.start();

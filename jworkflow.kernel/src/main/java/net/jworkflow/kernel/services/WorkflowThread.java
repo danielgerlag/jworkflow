@@ -33,38 +33,43 @@ public class WorkflowThread implements Runnable {
     public void run() {
         try {
             String workflowId = queueProvider.dequeueForProcessing(QueueType.WORKFLOW);
-            if (workflowId != null) {
-                if (lockProvider.acquireLock(workflowId)) {
-                    WorkflowExecutorResult result = new WorkflowExecutorResult();
-                    try {
-                        WorkflowInstance workflow = persistenceStore.getWorkflowInstance(workflowId);
-                        try {
-                            result = executor.execute(workflow);                            
-                        }
-                        finally {
-                            persistenceStore.persistWorkflow(workflow);
-                        }                        
-                    }
-                    finally {
-                        lockProvider.releaseLock(workflowId);
-                        
-                        for (EventSubscription evt: result.subscriptions) {
-                            subscribeEvent(evt);
-                        }
-                        
-                        if (result.requeue) {
-                            logger.log(Level.INFO, String.format("Requeue workflow %s", workflowId));
-                            queueProvider.queueForProcessing(QueueType.WORKFLOW, workflowId);
-                        }
-                    }
+            
+            if (workflowId == null) {
+                if (!queueProvider.isDequeueBlocking()) {
+                    Thread.sleep(1000);
                 }
-                else {
-                    logger.log(Level.INFO, String.format("Workflow %s locked", workflowId));
-                }
+                return;
+            }            
+            
+            if (!lockProvider.acquireLock(workflowId)) {
+                logger.log(Level.INFO, String.format("Workflow %s locked", workflowId));
+                return;
             }
+
+            WorkflowExecutorResult result = new WorkflowExecutorResult();
+            try {
+                WorkflowInstance workflow = persistenceStore.getWorkflowInstance(workflowId);
+                try {
+                    result = executor.execute(workflow);                            
+                }
+                finally {
+                    persistenceStore.persistWorkflow(workflow);
+                }                        
+            }
+            finally {
+                lockProvider.releaseLock(workflowId);
+
+                for (EventSubscription evt: result.subscriptions) {
+                    subscribeEvent(evt);
+                }
+
+                if (result.requeue) {
+                    logger.log(Level.INFO, String.format("Requeue workflow %s", workflowId));
+                    queueProvider.queueForProcessing(QueueType.WORKFLOW, workflowId);
+                }
+            }            
         }
         catch (Exception ex) {
-
             logger.log(Level.SEVERE, ex.toString());
         }
     }

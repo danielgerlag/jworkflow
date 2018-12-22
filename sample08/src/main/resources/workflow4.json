@@ -1,0 +1,41 @@
+{
+  "id": "test-workflow",
+  "version": 1,
+  "dataType": "net.jworkflow.sample08.MyData",
+  "steps": [
+    {
+      "id": "step1",
+      "stepType": "net.jworkflow.sample08.steps.Hello",
+      "nextStepId": "step2"
+    },
+    {
+      "id": "step2",
+      "stepType": "net.jworkflow.primitives.If",
+      "nextStepId": "step3",
+      "inputs": {
+          "condition": "data.value1 == 2"
+      },
+      "thenDo": [[
+          {
+            "id": "step2.1",
+            "stepType": "net.jworkflow.sample08.steps.PrintMessage",
+            "nextStepId": "step2.2",
+            "inputs": {
+                "message": "'doing 2.1'"
+            }
+          },
+          {
+            "id": "step2.2",
+            "stepType": "net.jworkflow.sample08.steps.PrintMessage",
+            "inputs": {
+                "message": "'doing 2.2'"
+            }
+          }
+      ]]
+    },    
+    {
+      "id": "step3",
+      "stepType": "net.jworkflow.sample08.steps.Goodbye"
+    }
+  ]
+}

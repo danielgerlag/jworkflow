@@ -1,0 +1,56 @@
+{
+  "id": "test-workflow",
+  "version": 1,
+  "steps": [
+    {
+      "id": "hello",
+      "stepType": "net.jworkflow.sample08.steps.Hello",
+      "nextStepId": "mySaga"
+    },
+    {
+      "id": "mySaga",
+      "stepType": "net.jworkflow.primitives.Sequence",
+      "nextStepId": "bye",
+      "saga": true,
+      "thenDo": [
+        [
+          {
+            "id": "do1",
+            "stepType": "net.jworkflow.sample08.steps.Task1",
+            "nextStepId": "do2",
+            "compensateWith": [
+              {
+                "id": "undo1",
+                "stepType": "net.jworkflow.sample08.steps.UndoTask1"
+              }
+            ]
+          },
+          {
+            "id": "do2",
+            "stepType": "net.jworkflow.sample08.steps.Task2",
+            "compensateWith": [
+              {
+                "id": "undo2",
+                "stepType": "net.jworkflow.sample08.steps.UndoTask2"
+              }
+            ]
+          },
+          {
+            "id": "do3",
+            "stepType": "net.jworkflow.sample08.steps.Task3",
+            "compensateWith": [
+              {
+                "id": "undo3",
+                "stepType": "net.jworkflow.sample08.steps.UndoTask3"
+              }
+            ]
+          }
+        ]
+      ]
+    },    
+    {
+      "id": "bye",
+      "stepType": "net.jworkflow.sample08.steps.Goodbye"
+    }
+  ]
+}

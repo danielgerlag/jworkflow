@@ -1,12 +1,19 @@
 package net.jworkflow.kernel.interfaces;
 
+import net.jworkflow.primitives.Sequence;
+import net.jworkflow.primitives.While;
+import net.jworkflow.primitives.WaitFor;
+import net.jworkflow.primitives.If;
+import net.jworkflow.primitives.Schedule;
+import net.jworkflow.primitives.Delay;
+import net.jworkflow.primitives.Foreach;
+import net.jworkflow.primitives.ConsumerStep;
 import java.time.Duration;
 import java.util.Date;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import net.jworkflow.kernel.models.ErrorBehavior;
 import net.jworkflow.kernel.models.*;
-import net.jworkflow.kernel.steps.*;
 
 public interface StepBuilder<TData, TStep extends StepBody> {
 
