@@ -7,7 +7,8 @@ public interface WorkflowHost {
     void start();
     void stop();
     void registerWorkflow(Class<? extends Workflow> workflow) throws Exception;
-    void registerWorkflow(Workflow workflow) throws Exception;    
+    void registerWorkflow(Workflow workflow) throws Exception;
+    void registerWorkflowFromJson(String json) throws Exception;
     void publishEvent(String eventName, String eventKey, Object eventData, Date effectiveDateUtc) throws Exception;
     
     /**
