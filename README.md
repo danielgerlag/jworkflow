@@ -28,7 +28,7 @@ dependencies {
 
 ## Documentation
 
-See [Tutorial here.](https://github.com/danielgerlag/jworkflow/docs)
+See [Tutorial here.](https://github.com/danielgerlag/jworkflow/tree/master/docs)
 
 ## Fluent API
 
