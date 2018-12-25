@@ -47,6 +47,7 @@ public class Hello implements StepBody {
         return ExecutionResult.next();
     }    
 }
+
 ```
 
 Then we define the workflow structure by composing a chain of steps.  The is done by implementing the `Workflow` interface

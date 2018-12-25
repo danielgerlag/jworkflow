@@ -16,12 +16,12 @@ public class Main {
         Logger rootLogger = Logger.getLogger("");
         rootLogger.setLevel(Level.SEVERE); 
         
-        String str = readResource("workflow5.json");
+        String str = readResource("workflow1.json");
         //System.out.println(str);
         WorkflowModule module = new WorkflowModule();
         module.build();
         WorkflowHost host = module.getHost();
-        module.getLoader().loadFromJson(str);
+        host.registerWorkflowFromJson(str);
         
         host.start();
         

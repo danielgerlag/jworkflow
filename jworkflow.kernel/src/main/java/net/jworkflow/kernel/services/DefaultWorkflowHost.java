@@ -1,10 +1,8 @@
 package net.jworkflow.kernel.services;
 
-import net.jworkflow.kernel.models.EventSubscription;
 import net.jworkflow.kernel.models.QueueType;
 import net.jworkflow.kernel.models.WorkflowDefinition;
 import net.jworkflow.kernel.models.WorkflowStatus;
-import net.jworkflow.kernel.models.ExecutionPointer;
 import net.jworkflow.kernel.models.Event;
 import net.jworkflow.kernel.models.WorkflowInstance;
 import net.jworkflow.kernel.interfaces.*;
@@ -16,13 +14,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.jworkflow.definitionstorage.services.DefinitionLoader;
 
 @Singleton
 public class DefaultWorkflowHost implements WorkflowHost {
@@ -35,6 +33,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
     private final ExecutionPointerFactory pointerFactory;
     private final List<ScheduledFuture> workerFutures;
     private final ScheduledExecutorService scheduler;
+    private final DefinitionLoader definitionLoader;
     private final Clock clock;
     private final Injector injector;
     private final Logger logger;
@@ -42,7 +41,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
     private ScheduledFuture pollFuture;
     
     @Inject
-    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, ExecutionPointerFactory pointerFactory, Clock clock, Injector injector, Logger logger) {
+    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, ExecutionPointerFactory pointerFactory, DefinitionLoader definitionLoader, Clock clock, Injector injector, Logger logger) {
         
         Runtime runtime = Runtime.getRuntime();
         
@@ -55,6 +54,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
         this.injector = injector;
         this.logger = logger;
         this.scheduler = Executors.newScheduledThreadPool(runtime.availableProcessors());
+        this.definitionLoader = definitionLoader;
         active = false;
         workerFutures = new ArrayList<>();        
     }
@@ -193,6 +193,11 @@ public class DefaultWorkflowHost implements WorkflowHost {
             }
         }
         return false;
+    }
+
+    @Override
+    public void registerWorkflowFromJson(String json) throws Exception {
+        definitionLoader.loadFromJson(json);
     }
 
 }
