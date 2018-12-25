@@ -314,17 +314,17 @@ By default, the WorkflowHost service will run as a single node using the built-i
 
 ## Samples
 
-[Hello World](sample01)
+[Hello World](samples/sample01)
 
-[Passing Data](sample02)
+[Passing Data](samples/sample02)
 
-[If condition](sample06)
+[If condition](samples/sample06)
 
-[Responding to external events](sample03)
+[Responding to external events](samples/sample03)
 
-[Parallel ForEach](sample04)
+[Parallel ForEach](samples/sample04)
 
-[While loop](sample05)
+[While loop](samples/sample05)
 
 
 ## Authors
