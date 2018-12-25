@@ -17,7 +17,6 @@ public class Main {
         rootLogger.setLevel(Level.SEVERE); 
         
         String str = readResource("workflow1.json");
-        //System.out.println(str);
         WorkflowModule module = new WorkflowModule();
         module.build();
         WorkflowHost host = module.getHost();

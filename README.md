@@ -1,6 +1,5 @@
 # JWorkflow
 
-
 JWorkflow is a light weight workflow library for Java.  It supports pluggable persistence and concurrency providers to allow for multi-node clusters.
 
 ## Installing
@@ -27,19 +26,28 @@ dependencies {
 }
 ```
 
+## Documentation
 
-## Basic Concepts
+See [Tutorial here.](https://github.com/danielgerlag/jworkflow/docs)
 
-### Steps
+## Fluent API
 
-A workflow consists of a series of connected steps.  Each step produces an outcome value and subsequent steps are triggered by subscribing to a particular outcome of a preceeding step.  
-The default outcome of `ExecutionResult.next()` can be used for a basic linear workflow.
-Steps are usually defined by implementing from the `StepBody` interface.  They can also be created inline while defining the workflow structure.
+Define your workflows with the fluent API.
 
-First we define some steps
-
-```java
-public class Hello implements StepBody {
+```c#
+public class HelloWorkflow implements Workflow {
+   @Override
+    public void build(WorkflowBuilder builder) {
+        
+        builder
+            .startsWith(Task1.class)
+            .then(Task2.class)                
+            .then(Task3.class);        
+    }    
+}
+...
+...
+public class Task1 implements StepBody {
 
     @Override
     public ExecutionResult run(StepExecutionContext context) {
@@ -47,242 +55,92 @@ public class Hello implements StepBody {
         return ExecutionResult.next();
     }    
 }
-
 ```
 
-Then we define the workflow structure by composing a chain of steps.  The is done by implementing the `Workflow` interface
+## JSON Workflow Definitions
 
-```java
-public class HelloWorkflow implements Workflow {
+Define your workflows in JSON
 
-    @Override
-    public String getId() {
-        return "hello";
+```json
+{
+  "id": "HelloWorld",
+  "version": 1,
+  "steps": [
+    {
+      "id": "hello",
+      "stepType": "com.myapp.Step1",
+      "nextStepId": "bye"
+    },        
+    {
+      "id": "bye",
+      "stepType": "com.myapp.Step2"
     }
-
-    @Override
-    public Class getDataType() {
-        return MyData.class;
-    }
-
-    @Override
-    public int getVersion() {
-        return 1;
-    }
-
-    @Override
-    public void build(WorkflowBuilder builder) {
-        
-        builder
-            .startsWith(Hello.class)
-            .then(Hello.class)                
-            .then(Goodbye.class);        
-    }    
-}
-```
-The  id and version properties are used by the workflow host to identify a workflow definition.
-
-You can also define your steps inline
-
-```java
-@Override
-public void build(WorkflowBuilder builder) {    
-    builder
-        .startsWith(Hello.class)
-        .then(context -> { 
-            return ExecutionResult.next(); 
-        })                
-        .then(Goodbye.class);    
-}
-```
-*The `dataType` property on the `Workflow` interface is used to specify a strongly typed data class that will be persisted along with each instance of this workflow*
-
-Each running workflow is persisted to the chosen persistence provider between each step, where it can be picked up at a later point in time to continue execution.  The outcome result of your step can instruct the workflow host to defer further execution of the workflow until a future point in time or in response to an external event.
-
-The first time a particular step within the workflow is called, the persistenceData property on the context object is *null*.  The ExecutionResult produced by the *run* method can either cause the workflow to proceed to the next step by providing an outcome value, instruct the workflow to sleep for a defined period or simply not move the workflow forward.  If no outcome value is produced, then the step becomes re-entrant by setting persistenceData, so the workflow host will call this step again in the future buy will popluate the persistenceData with it's previous value.
-
-For example, this step will initially run with *null* persistenceData and put the workflow to sleep for 1 hour, while setting the persistenceData to *true*.  1 hour later, the step will be called again but context.persistenceData will now contain the value from the previous iteration, and will now produce an outcome value of *null*, causing the workflow to move forward.
-
-```java
-class DeferredStep extends StepBody {    
-    public run(context: StepExecutionContext): Promise<ExecutionResult> {
-        if (context.getPersistenceData() == null) {            
-            System.out.println("going to sleep...");                
-            return ExecutionResult.sleep(Duration.ofHours(1), true);
-        }
-        else {            
-            System.out.println("waking up...");
-            return ExecutionResult.next();
-        } 
-    }
+  ]
 }
 ```
 
-### Passing data between steps
+### Sample use cases
 
-Each step is intended to be a black-box, therefore they support inputs and outputs.  These inputs and outputs can be mapped to a data class that defines the custom data relevant to each workflow instance.
-
-The following sample shows how to define inputs and outputs on a step, it then shows how define a workflow with a typed class for internal data and how to map the inputs and outputs to properties on the custom data class.
-
+* New user workflow
 ```java
-//Our workflow step with inputs and outputs
-public class AddNumbers implements StepBody {
-
-    public int number1;
-    public int number2;
-    public int answer;
-    
-    @Override
-    public ExecutionResult run(StepExecutionContext context) {
-        answer = number1 + number2;
-        return ExecutionResult.next();
-    }    
-}
-
-//Our class to define the internal data of our workflow
 public class MyData {    
-    public int value1;
-    public int value2;
-    public int value3;
+    public String email;
+    public String password;
+    public String userId;
 }
 
-//Our workflow definition with strongly typed internal data and mapped inputs & outputs
-public class DataWorkflow implements Workflow<MyData> {
 
-    @Override
-    public String getId() {
-        return "data-workflow";
-    }
+public class MyWorkflow implements Workflow<MyData> {
 
-    @Override
-    public Class getDataType() {
-        return MyData.class;
-    }
-
-    @Override
-    public int getVersion() {
-        return 1;
-    }
+    ...
 
     @Override
     public void build(WorkflowBuilder<MyData> builder) {
-        
         builder
-            .startsWith(AddNumbers.class)  
-                .input((step, data) -> step.number1 = data.value1)
-                .input((step, data) -> step.number2 = data.value2)
-                .output((step, data) -> data.value3 = step.answer)
-            .then(DisplayAnswer.class)
-                .input((step, data) -> step.answer = data.value3);
+            .startsWith(CreateUser.class)  
+                .input((step, data) -> step.email = data.email)
+                .input((step, data) -> step.password = data.password)
+                .output((step, data) -> data.userId = step.userId)
+            .then(SendConfirmationEmail.class)
+                .waitFor("confirmation", data -> data.userId)
+            .then(UpdateUser.class)
+                .input((step, data) -> step.userId = data.userId);
     }    
 }
 ```
 
-### Events
-
-A workflow can also wait for an external event before proceeding.  In the following example, the workflow will wait for an event called *"myEvent"* with a key of *0*.  Once an external source has fired this event, the workflow will wake up and continue processing, passing the data generated by the event onto the next step.
+* Saga Transactions
 
 ```java
-public void build(WorkflowBuilder<MyData> builder) {    
-    builder
-        .startsWith(Hello.class)
-        .waitFor("myEvent", x -> "0")
-            .output((step, data) -> data.value1 = step.eventData)
-        .then(DisplayAnswer.class)
-            .input((step, data) -> step.answer = data.value1);
-}
-...
-//External events are published via the host
-//All workflows that have subscribed to myEvent 0, will be passed "hello"
-host.publishEvent("myEvent", "0", "hello");
-```
+public class MyWorkflow implements Workflow<MyData> {
 
-### If condition
+    ...
 
-```java
-@Override
-public void build(WorkflowBuilder<MyData> builder) {        
-    builder
-        .startsWith(Hello.class)                          
-        .If(data -> data.value1 > 2)
-            .Do(then -> then
-                    .startsWith(PrintMessage.class)
-                        .input((step, data) -> step.message = "Value is greater than 2")
-                    .then(PrintMessage.class)
-                        .input((step, data) -> step.message = "Doing something...")
-            )
-        .If(data -> data.value1 == 5)
-            .Do(then -> then
-                    .startsWith(PrintMessage.class)
-                        .input((step, data) -> step.message = "Value is 5")
-                    .then(PrintMessage.class)
-                        .input((step, data) -> step.message = "Doing something...")
-            )
-        .If(data -> data.value1 == 3)
-            .Do(then -> then
-                    .startsWith(PrintMessage.class)
-                        .input((step, data) -> step.message = "Value is 3")
-                    .then(PrintMessage.class)
-                        .input((step, data) -> step.message = "Doing something...")
-            )                
-        .then(Goodbye.class);        
-}    
-```
-
-### While loop
-
-```java
-@Override
-public void build(WorkflowBuilder<MyData> builder) {
-    builder
-        .startsWith(Hello.class)                
-        .While(data -> data.value1 < 3)
-            .Do(each -> each
-                .startsWith(IncrementValue.class)
-                    .input((step, data) -> step.value = data.value1)
-                    .output((step, data) -> data.value1 = step.value)
-            )
-        .then(Goodbye.class);        
+    @Override
+    public void build(WorkflowBuilder<MyData> builder) {
+        builder
+            .startsWith(CreateCustomer.class)  
+            .then(PushToSalesforce.class)
+                .onError(ErrorBehavior.RETRY)
+            .then(PushToERP.class)
+                .onError(ErrorBehavior.RETRY, Duration.ofMinutes(30));
+    }    
 }
 ```
-### Parallel ForEach
 
 ```java
-@Override
-public void build(WorkflowBuilder<MyData> builder) {        
-    
-    builder
-        .startsWith(Hello.class)                          
-        .foreach(data -> data.value1)  //either values from workflow data
-            .Do(each -> each
-                .startsWith(DoSomething.class))
-        .then(Hello.class)
-        .foreach(data -> new String[] { "item 1", "item 2", "item 3" })  //or values defined inline
-            .Do(each -> each
-                .startsWith(DoSomething.class))
-        .then(Goodbye.class);        
-}    
-```
-
-### Host
-
-The workflow host is the service responsible for executing workflows.  It does this by polling the persistence provider for workflow instances that are ready to run, executes them and then passes them back to the persistence provider to by stored for the next time they are run.  It is also responsible for publishing events to any workflows that may be waiting on one.
-
-#### Usage
-
-When your application starts, create a WorkflowHost service, call *registerWorkflow*, so that the workflow host knows about all your workflows, and then call *start()* to fire up the thread pool that executes workflows.  Use the *startWorkflow* method to initiate a new instance of a particular workflow.
-
-
-```java
-WorkflowModule module = new WorkflowModule();
-module.build();
-WorkflowHost host = module.getHost();
-        
-host.registerWorkflow(HelloWorkflow.class);
-
-host.start();
-
-String id = host.startWorkflow("hello", 1, null);
+builder
+    .startsWith(LogStart.class)  
+    .saga(saga -> saga
+        .startsWith(Task1.class)
+            .compensateWith(UndoTask1.class)
+        .then(Task2.Class)
+            .compensateWith(UndoTask2.class)
+        .then(Task3.Class)
+            .compensateWith(UndoTask3.class)
+    )
+    .onError(ErrorBehavior.RETRY, Duration.ofMinutes(30));
+    .then(LogEnd.class);
 ```
 
 
@@ -292,7 +150,7 @@ Since workflows are typically long running processes, they will need to be persi
 There are several persistence providers available as seperate packages.
 
 * Memory Persistence Provider *(Default provider, for demo and testing purposes)*
-* [MongoDB](jworkflow.providers.mongodb)
+* [MongoDB](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.mongodb)
 * *(more to come soon...)*
 
 ### Multi-node clusters
@@ -302,35 +160,41 @@ By default, the WorkflowHost service will run as a single node using the built-i
 #### Queue Providers
 
 * SingleNodeQueueProvider *(Default built-in provider)*
-* RabbitMQ *(coming soon...)*
-* Apache ZooKeeper *(coming soon...)*
+* [RabbitMQ](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.rabbitmq)
+* [Redis](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.redis)
+* [AWS Simple Queue Service](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.aws)
 
 #### Distributed lock managers
 
 * SingleNodeLockProvider *(Default built-in provider)*
-* Redis Redlock *(coming soon...)*
-* Apache ZooKeeper *(coming soon...)*
-
+* [Redis](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.redis)
+* *(more to come soon...)*
 
 ## Samples
 
-[Hello World](samples/sample01)
+[Hello World](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample01)
 
-[Passing Data](samples/sample02)
+[Passing Data](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample02)
 
-[If condition](samples/sample06)
+[If condition](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample06)
 
-[Responding to external events](samples/sample03)
+[Responding to external events](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample03)
 
-[Parallel ForEach](samples/sample04)
+[Parallel ForEach](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample04)
 
-[While loop](samples/sample05)
+[While loop](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample05)
+
+[Saga Transactions](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample07)
+
+[JSON Workflows](https://github.com/danielgerlag/jworkflow/tree/master/samples/sample08)
 
 
-## Authors
+
+## Contributors
 
 * **Daniel Gerlag** - *Initial work*
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
