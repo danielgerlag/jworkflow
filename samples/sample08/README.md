@@ -1,4 +1,4 @@
-# Saga Transaction sample
+# JSON samples
 
 Illustrates how to implement an saga transaction with compensating steps, should an unhandled exception occur within the saga.
 
