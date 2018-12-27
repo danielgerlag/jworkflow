@@ -1,4 +1,3 @@
-/*
 package net.jworkflow.providers.aws;
 
 import com.google.inject.Provider;
@@ -19,4 +18,3 @@ public class DynamoDBLockProvider implements Provider<DynamoDBLockService> {
         return new DynamoDBLockService(region, tableName);
     }
 }
-*/

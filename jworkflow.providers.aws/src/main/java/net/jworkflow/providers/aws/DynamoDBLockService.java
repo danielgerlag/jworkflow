@@ -1,98 +1,177 @@
-/*
 package net.jworkflow.providers.aws;
 
-import com.amazonaws.services.dynamodbv2.AcquireLockOptions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBLockClient;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBLockClientOptions;
-import com.amazonaws.services.dynamodbv2.CreateDynamoDBTableOptions;
-import com.amazonaws.services.dynamodbv2.LockItem;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import com.google.inject.Singleton;
-import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.jworkflow.kernel.interfaces.LockService;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 @Singleton
 public class DynamoDBLockService implements LockService {
 
     private final String tableName;
     private final Region region;
-    private final Map<String, LockItem> localLocks;
-    private AmazonDynamoDB dynamoDB;    
-    private AmazonDynamoDBLockClient client;
+    private final String nodeId;
+    private DynamoDbClient client;
+    private final long ttl = 30000;
+    private final long heartbeat = 10000;
+    private final long jitter = 1000;
+    private final ScheduledExecutorService scheduler;
+    private final List<String> localLocks;
+    private ScheduledFuture heartbeatFuture;
+
     
     public DynamoDBLockService(Region region, String tableName) {
         this.region = region;
         this.tableName = tableName;
-        localLocks = new ConcurrentHashMap<>();
+        this.nodeId = UUID.randomUUID().toString();
+        this.localLocks = new ArrayList<>();
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
     }
     
     @Override
-    public boolean acquireLock(String id) {
-        AcquireLockOptions opts = AcquireLockOptions
-                .builder(id)                
-                .build();
+    public synchronized boolean acquireLock(String id) {
+        if (client == null)
+            throw new IllegalStateException();
         
+        Map<String, AttributeValue> item = buildIdMap(id);
+        item.put("lockOwner", AttributeValue.builder().s(nodeId).build());
+        item.put("expires", AttributeValue.builder().n(String.valueOf(Instant.now().toEpochMilli() + ttl)).build());
+        
+        Map<String, AttributeValue> condValues = new HashMap<>();
+        condValues.put(":expired", AttributeValue.builder().n(String.valueOf(Instant.now().toEpochMilli() + jitter)).build());
+                
         try {
-            Optional<LockItem> lock = client.tryAcquireLock(opts);
-            if (!lock.isPresent())
-                return false;
-
-            localLocks.put(id, lock.get());
-            return true;
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }        
+            PutItemResponse lock1Resp = client.putItem(x -> x
+                .tableName(tableName)
+                .conditionExpression("attribute_not_exists(id) OR (expires < :expired)")
+                .expressionAttributeValues(condValues)
+                .item(item)
+            );
+            
+            if (lock1Resp.sdkHttpResponse().isSuccessful()) {
+                localLocks.add(id);
+                return true;
+            }
+        }
+        catch (ConditionalCheckFailedException ex) {
+            //log something            
+        }
+        return false;
     }
 
     @Override
-    public void releaseLock(String id) {
-        LockItem lock = localLocks.get(id);
-        if (lock != null) {
-            client.releaseLock(lock);
-            localLocks.remove(id);
+    public synchronized void releaseLock(String id) {
+        if (client == null)
+            throw new IllegalStateException();
+        
+        localLocks.remove(id);
+        
+        Map<String, AttributeValue> cv = new HashMap<>();
+        cv.put(":nodeId", AttributeValue.builder().s(nodeId).build());
+        
+        try {
+            client.deleteItem(x -> x.
+                tableName(tableName)
+                .key(buildIdMap(id))
+                .conditionExpression("lockOwner = :nodeId")
+                .expressionAttributeValues(cv)
+            );
+        }
+        catch (ConditionalCheckFailedException ex) {
+            //log something
         }
     }
 
     @Override
     public void start() {
-        dynamoDB = AmazonDynamoDBClientBuilder.standard()
-                    .withRegion(region.id())                        
-                    .build();
-        
-        client = new AmazonDynamoDBLockClient(AmazonDynamoDBLockClientOptions.builder(dynamoDB, tableName)
-                    .withTimeUnit(TimeUnit.SECONDS)
-                    .withLeaseDuration(10L)
-                    .withHeartbeatPeriod(3L)                    
-                    .build());
-        
-        if (!client.lockTableExists()) {
-            ProvisionedThroughput ptp = new ProvisionedThroughput()
-                    .withReadCapacityUnits(5L)
-                    .withWriteCapacityUnits(5L);
-            
-            CreateDynamoDBTableOptions opts = CreateDynamoDBTableOptions.builder(dynamoDB, ptp, tableName).build();
-            AmazonDynamoDBLockClient.createLockTableInDynamoDB(opts);
-        }
+        client = DynamoDbClient.builder()
+                .region(region)
+                .build();
+                
+        ensureTable();        
+        heartbeatFuture = scheduler.scheduleAtFixedRate(() -> sendHeartbeat(), heartbeat, heartbeat, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void stop() {
+        heartbeatFuture.cancel(true);
+        client.close();
+    }
+    
+    private Map<String, AttributeValue> buildIdMap(String id) {
+        Map<String, AttributeValue> result = new HashMap<>();
+        result.put("id", AttributeValue.builder().s(id).build());
+        return result;
+    }
+    
+    private synchronized void sendHeartbeat() { 
         try {
-            client.close();
-        } catch (IOException ex) {
-            Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.SEVERE, null, ex);
+            for (String lock: localLocks) {                    
+                Map<String, AttributeValue> item = buildIdMap(lock);
+                item.put("lockOwner", AttributeValue.builder().s(nodeId).build());
+                item.put("expires", AttributeValue.builder().n(String.valueOf(Instant.now().toEpochMilli() + ttl)).build());
+
+                Map<String, AttributeValue> cv = new HashMap<>();
+                cv.put(":nodeId", AttributeValue.builder().s(nodeId).build());                    
+
+                client.putItem(x -> x
+                    .tableName(tableName)
+                    .conditionExpression("lockOwner = :nodeId")
+                    .expressionAttributeValues(cv)
+                    .item(item)
+                );
+            }
+        }
+        catch (Exception ex) {
+            //log something
         }
     }
+    
+    private void ensureTable() {
+        if (client == null)
+            throw new IllegalStateException();
+        
+        try {
+            DescribeTableResponse r = client.describeTable(x -> x.tableName(tableName));
+        } 
+        catch (ResourceNotFoundException ex) {
+            createTable();
+        }
+    }
+
+    private void createTable() throws AwsServiceException, SdkClientException {
+        if (client == null)
+            throw new IllegalStateException();
+        
+        client.createTable(x -> x
+            .tableName(tableName)
+            .provisionedThroughput(pt -> pt
+                    .readCapacityUnits(1L)
+                    .writeCapacityUnits(1L))                
+            .keySchema(key -> key
+                    .attributeName("id")
+                    .keyType(KeyType.HASH))
+            .attributeDefinitions(attr -> attr
+                    .attributeName("id")
+                    .attributeType("S"))
+        );
+    }
 }
-*/
