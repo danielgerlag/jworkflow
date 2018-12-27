@@ -20,10 +20,24 @@ import net.jworkflow.kernel.interfaces.WorkflowBuilder;
 import net.jworkflow.kernel.models.WorkflowDefinition;
 import net.jworkflow.kernel.builders.BaseWorkflowBuilder;
 import net.jworkflow.kernel.builders.DefaultWorkflowBuilder;
+import net.jworkflow.providers.aws.DynamoDBLockService;
 import net.jworkflow.sample01.HelloWorkflow;
+import software.amazon.awssdk.regions.Region;
 
 public class Main {
     public static void main(String[] args) throws Exception {        
+        
+        DynamoDBLockService dlm = new DynamoDBLockService(Region.US_WEST_1, "table4");
+        System.out.println("starting...");
+        dlm.start();
+        System.out.println("started");
+        
+        
+        boolean lock1 = dlm.acquireLock("lock1");
+        dlm.releaseLock("lock1");
+        System.out.println(lock1);
+        
+        dlm.stop();
         
         
     }

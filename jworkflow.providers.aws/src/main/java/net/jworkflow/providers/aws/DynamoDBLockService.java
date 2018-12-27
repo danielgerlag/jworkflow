@@ -12,16 +12,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.jworkflow.kernel.interfaces.LockService;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.BillingMode;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 
 @Singleton
 public class DynamoDBLockService implements LockService {
@@ -72,7 +76,7 @@ public class DynamoDBLockService implements LockService {
             }
         }
         catch (ConditionalCheckFailedException ex) {
-            //log something            
+            Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.FINE, "Failed to get lock {0}", id);
         }
         return false;
     }
@@ -96,7 +100,7 @@ public class DynamoDBLockService implements LockService {
             );
         }
         catch (ConditionalCheckFailedException ex) {
-            //log something
+            Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.FINE, "Failed to release lock {0}", id);
         }
     }
 
@@ -141,7 +145,7 @@ public class DynamoDBLockService implements LockService {
             }
         }
         catch (Exception ex) {
-            //log something
+            Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.WARNING, "Error sending heartbeat", ex);
         }
     }
     
@@ -161,11 +165,11 @@ public class DynamoDBLockService implements LockService {
         if (client == null)
             throw new IllegalStateException();
         
+        Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.INFO, "Creating lock table in DynamoDB");
+        
         client.createTable(x -> x
             .tableName(tableName)
-            .provisionedThroughput(pt -> pt
-                    .readCapacityUnits(1L)
-                    .writeCapacityUnits(1L))                
+            .billingMode(BillingMode.PAY_PER_REQUEST)
             .keySchema(key -> key
                     .attributeName("id")
                     .keyType(KeyType.HASH))
@@ -173,5 +177,18 @@ public class DynamoDBLockService implements LockService {
                     .attributeName("id")
                     .attributeType("S"))
         );
+        
+        int i = 0;
+        boolean created = false;
+        while ((i < 10) && (!created)) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            DescribeTableResponse r = client.describeTable(x -> x.tableName(tableName));
+            created = (r.table().tableStatus() == TableStatus.ACTIVE);
+            i++;
+        }
     }
 }

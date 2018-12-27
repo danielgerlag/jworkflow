@@ -30,8 +30,8 @@ public class Main {
         //module.useDistibutedLock(new RedisLockServiceProvider(config));
         //module.useQueue(new RedisQueueServiceProvider(config));
         
-        module.useQueue(new SQSProvider(Region.US_WEST_1));
-        module.useDistibutedLock(new DynamoDBLockProvider(Region.US_WEST_1, "jworkflowLockTable2"));
+        //module.useQueue(new SQSProvider(Region.US_WEST_1));
+        //module.useDistibutedLock(new DynamoDBLockProvider(Region.US_WEST_1, "jworkflowLocks"));
         
         
         module.build();

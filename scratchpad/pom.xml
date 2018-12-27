@@ -14,7 +14,12 @@
         <dependency>
             <groupId>net.jworkflow</groupId>
             <artifactId>sample01</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>net.jworkflow</groupId>
+            <artifactId>jworkflow.providers.aws</artifactId>
+            <version>0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
