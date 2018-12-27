@@ -1,6 +1,6 @@
 # AWS providers for JWorkflow
 
-Provides support to run multi-node clusters of [JWorkflow](../README.md), by providing a distributed shared work queue.
+Provides support to run multi-node clusters of [JWorkflow](../README.md), by providing a distributed lock manager (via DynamoDB) and/or a shared work queue (via Simple Queue Service).
 
 ## Installing
 
@@ -11,7 +11,7 @@ Provides support to run multi-node clusters of [JWorkflow](../README.md), by pro
     <dependency>
         <groupId>net.jworkflow</groupId>
         <artifactId>jworkflow.providers.aws</artifactId>
-        <version>0.4</version>
+        <version>>0.5-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```
@@ -20,12 +20,12 @@ Provides support to run multi-node clusters of [JWorkflow](../README.md), by pro
 
 ```Gradle
 dependencies { 
-    compile 'net.jworkflow:jworkflow.providers.aws:0.4'
+    compile 'net.jworkflow:jworkflow.providers.aws:>0.5-SNAPSHOT'
 }
 ```
 
 
-## Usage
+## Usage for Shared Work Queue
 
 ```java
 import software.amazon.awssdk.regions.Region;
@@ -37,6 +37,25 @@ import net.jworkflow.providers.aws.SQSProvider;
 WorkflowModule module = new WorkflowModule();
 
 module.useQueue(new SQSProvider(Region.US_WEST_1));
+
+module.build();
+WorkflowHost host = module.getHost();
+
+```
+
+
+## Usage for Distributed Lock Manager
+
+```java
+import software.amazon.awssdk.regions.Region;
+import net.jworkflow.providers.aws.DynamoDBLockProvider;
+...
+...
+
+```java
+WorkflowModule module = new WorkflowModule();
+
+module.useDistibutedLock(new DynamoDBLockProvider(Region.US_WEST_1, "jworkflowLockTable")); //DynamoDB table name of your choice
 
 module.build();
 WorkflowHost host = module.getHost();
