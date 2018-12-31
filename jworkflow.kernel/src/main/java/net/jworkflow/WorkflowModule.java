@@ -21,9 +21,12 @@ import net.jworkflow.kernel.services.DefaultExecutionResultProcessor;
 import net.jworkflow.kernel.services.DefaultWorkflowExecutor;
 import net.jworkflow.kernel.services.DefaultWorkflowHost;
 import net.jworkflow.kernel.services.DefaultWorkflowRegistry;
+import net.jworkflow.kernel.services.EventWorker;
 import net.jworkflow.kernel.services.MemoryPersistenceService;
+import net.jworkflow.kernel.services.PollThread;
 import net.jworkflow.kernel.services.SingleNodeLockService;
 import net.jworkflow.kernel.services.SingleNodeQueueService;
+import net.jworkflow.kernel.services.WorkflowWorker;
 
 public class WorkflowModule extends AbstractModule {  
     
@@ -49,6 +52,11 @@ public class WorkflowModule extends AbstractModule {
       bind(DefinitionLoader.class).to(DefaultDefinitionLoader.class);
       bind(Clock.class).toInstance(Clock.systemUTC());
       bind(ScriptEngine.class).toInstance(new ScriptEngineManager().getEngineByName("nashorn"));
+      
+      Multibinder<BackgroundService> backgroundServiceBinder = Multibinder.newSetBinder(binder(), BackgroundService.class);
+      backgroundServiceBinder.addBinding().to(WorkflowWorker.class);
+      backgroundServiceBinder.addBinding().to(EventWorker.class);
+      backgroundServiceBinder.addBinding().to(PollThread.class);
       
       Multibinder<StepErrorHandler> errorHandlerBinder = Multibinder.newSetBinder(binder(), StepErrorHandler.class);
       errorHandlerBinder.addBinding().to(RetryHandler.class);

@@ -11,13 +11,8 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.jworkflow.definitionstorage.services.DefinitionLoader;
@@ -31,35 +26,25 @@ public class DefaultWorkflowHost implements WorkflowHost {
     private final LockService lockProvider;
     private final WorkflowRegistry registry;
     private final ExecutionPointerFactory pointerFactory;
-    private final List<ScheduledFuture> workerFutures;
-    private final ScheduledExecutorService scheduler;
     private final DefinitionLoader definitionLoader;
     private final Clock clock;
-    private final Injector injector;
     private final Logger logger;
-    
-    private ScheduledFuture pollFuture;
+    private final Set<BackgroundService> backgroundServices;
     
     @Inject
-    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, ExecutionPointerFactory pointerFactory, DefinitionLoader definitionLoader, Clock clock, Injector injector, Logger logger) {
-        
-        Runtime runtime = Runtime.getRuntime();
-        
+    public DefaultWorkflowHost(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, WorkflowRegistry registry, ExecutionPointerFactory pointerFactory, DefinitionLoader definitionLoader, Clock clock, Set<BackgroundService> backgroundServices, Logger logger) {
         this.persistenceProvider = persistenceProvider;
         this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;
         this.registry = registry;        
         this.pointerFactory = pointerFactory;
         this.clock = clock;
-        this.injector = injector;
-        this.logger = logger;
-        this.scheduler = Executors.newScheduledThreadPool(runtime.availableProcessors());
+        this.logger = logger;        
         this.definitionLoader = definitionLoader;
+        this.backgroundServices = backgroundServices;
         active = false;
-        workerFutures = new ArrayList<>();        
     }
     
-
     @Override
     public String startWorkflow(String workflowId, int version, Object data) throws Exception {
         
@@ -96,25 +81,17 @@ public class DefaultWorkflowHost implements WorkflowHost {
     public void start() {
         active = true;
         lockProvider.start();
-        
-        WorkflowThread wfWorker = injector.getInstance(WorkflowThread.class);            
-        workerFutures.add(scheduler.scheduleAtFixedRate(wfWorker, 100, 100, TimeUnit.MILLISECONDS));
-        
-        EventThread evtWorker = injector.getInstance(EventThread.class);            
-        workerFutures.add(scheduler.scheduleAtFixedRate(evtWorker, 100, 100, TimeUnit.MILLISECONDS));
-        
-        PollThread poller = injector.getInstance(PollThread.class);
-        pollFuture = scheduler.scheduleAtFixedRate(poller, 10, 10, TimeUnit.SECONDS);
+        backgroundServices.forEach((svc) -> {
+            svc.start();
+        });
     }
 
     @Override
     public void stop() {
         active = false;
-        pollFuture.cancel(true);
-        workerFutures.forEach((worker) -> {
-            worker.cancel(false);
+        backgroundServices.forEach((svc) -> {
+            svc.stop();
         });
-        workerFutures.clear();
         lockProvider.stop();
     }
 
