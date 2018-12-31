@@ -66,7 +66,7 @@ public class DynamoDBFluentMapper<T> {
         return this;
     }*/
     
-    public DynamoDBFluentMapper<T> withList(String name, Function<T, List<E>> getter, BiConsumer<T, List<E>> setter) {
+    public DynamoDBFluentMapper<T> withList(String name, Function<T, Collection<E>> getter, BiConsumer<T, Collection<E>> setter) {
         getMaps.put(name, getter);
         setMaps.put(name, setter);
         typeMaps.put(name, AttributeType.LIST);
