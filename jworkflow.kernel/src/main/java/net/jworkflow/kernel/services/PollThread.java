@@ -6,7 +6,6 @@ import net.jworkflow.kernel.interfaces.PersistenceService;
 import com.google.inject.Inject;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import net.jworkflow.kernel.models.QueueType;
 import java.util.logging.Level;
@@ -20,8 +19,6 @@ public class PollThread implements BackgroundService {
     private final LockService lockProvider;
     private final Logger logger;
     private final ScheduledExecutorService scheduler;
-    private ScheduledFuture pollFuture;
-           
     
     @Inject
     public PollThread(PersistenceService persistence, QueueService queueProvider, LockService lockProvider, Logger logger) {
@@ -71,12 +68,11 @@ public class PollThread implements BackgroundService {
 
     @Override
     public void start() {
-        pollFuture = scheduler.scheduleAtFixedRate(() -> run(), 10, 10, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> run(), 10, 10, TimeUnit.SECONDS);
     }
 
     @Override
     public void stop() {
-        if (pollFuture != null)
-            pollFuture.cancel(true);
+        scheduler.shutdownNow();
     }
 }

@@ -57,5 +57,6 @@ public abstract class QueueWorker implements BackgroundService {
     @Override
     public void stop() {
         active = false;
+        workerPool.shutdown();
     }
 }
