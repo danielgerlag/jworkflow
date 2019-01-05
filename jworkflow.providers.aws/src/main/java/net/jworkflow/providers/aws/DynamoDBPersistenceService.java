@@ -27,13 +27,12 @@ import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 
 public class DynamoDBPersistenceService implements PersistenceService {
 
-    private final String workflowTableName;
+    public static String workflowTableName = "workflows";
     private final String tablePrefix = "jworkflow-";
     private final DynamoDbClient client;
     
     
     public DynamoDBPersistenceService(Region region) {
-        this.workflowTableName = tablePrefix + "workflows";
         
         client = DynamoDbClient.builder()
                 .region(region)
@@ -152,18 +151,6 @@ public class DynamoDBPersistenceService implements PersistenceService {
     }
     
     
-    private DynamoDBFluentMapper<ExecutionPointer> buildExecutionPointerMapper() { 
-        return new DynamoDBFluentMapper<>(ExecutionPointer.class)
-                .withString("id", (o) -> o.id, (o, v) -> o.id = v)
-                .withInteger("stepId", (o) -> o.stepId, (o, v) -> o.stepId = v)
-                .withBool("id", (o) -> o.active, (o, v) -> o.active = v)
-                .withString("id", (o) -> o.callStack, (o, v) -> o.id = v)
-                .withString("id", (o) -> o.id, (o, v) -> o.id = v)
-                .withString("id", (o) -> o.id, (o, v) -> o.id = v)
-                
-                
-                ;
-    }
     
     private DynamoDBFluentMapper<WorkflowInstance> buildMapper() {
         return new DynamoDBFluentMapper<>(WorkflowInstance.class)
