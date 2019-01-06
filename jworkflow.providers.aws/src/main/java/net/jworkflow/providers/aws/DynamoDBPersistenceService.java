@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.time.Instant;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +34,8 @@ import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 public class DynamoDBPersistenceService implements PersistenceService {
@@ -89,7 +93,28 @@ public class DynamoDBPersistenceService implements PersistenceService {
 
     @Override
     public Iterable<String> getRunnableInstances() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Collection<String> result = new ArrayList<>();
+                
+        Long now = new Date().getTime();
+        
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":r", AttributeValue.builder().s("1").build());
+        eav.put(":effective_date", AttributeValue.builder().n(now.toString()).build());        
+        
+        QueryResponse response = client.query(x -> x
+            .tableName(tablePrefix + "-" + workflowTableName)
+            .indexName("ix_runnable")
+            .projectionExpression("id")
+            .keyConditionExpression("runnable = :r and next_execution <= :effective_date")
+            .scanIndexForward(true)
+            .expressionAttributeValues(eav)
+        );
+        
+        response.items().stream().forEach((item) -> {            
+            result.add(item.get("id").s());
+        });
+        
+        return result;
     }
 
     @Override
@@ -154,13 +179,9 @@ public class DynamoDBPersistenceService implements PersistenceService {
     }
 
 
-    private void ensureTables() {
-        try {
-            client.describeTable(x -> x.tableName(workflowTableName));
-        } 
-        catch (ResourceNotFoundException ex) {
-            createTables();
-        }
+    @Override
+    public void provisionStore() {
+        provisioner.ensureTables();
     }    
     
     private Map<String, AttributeValue> mapFromWorkflow(WorkflowInstance source) throws IOException {        

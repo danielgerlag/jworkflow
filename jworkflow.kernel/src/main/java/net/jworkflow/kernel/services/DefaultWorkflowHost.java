@@ -95,6 +95,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
     @Override
     public void start() {
         active = true;
+        persistenceProvider.provisionStore();
         lockProvider.start();
         
         WorkflowThread wfWorker = injector.getInstance(WorkflowThread.class);            

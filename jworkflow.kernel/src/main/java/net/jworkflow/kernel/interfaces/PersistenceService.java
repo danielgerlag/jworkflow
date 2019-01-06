@@ -19,4 +19,6 @@ public interface PersistenceService {
     Iterable<String> getEvents(String eventName, String eventKey, Date asOf);
     void markEventProcessed(String id);
     void markEventUnprocessed(String id);
+    
+    void provisionStore();
 }
