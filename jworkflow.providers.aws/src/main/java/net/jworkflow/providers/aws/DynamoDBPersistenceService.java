@@ -40,7 +40,10 @@ import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 public class DynamoDBPersistenceService implements PersistenceService {
 
-    public static String workflowTableName = "workflows";
+    public static final String WORKFLOW_TABLE = "workflows";
+    public static final String SUBSCRIPTION_TABLE = "subscriptions";
+    public static final String EVENT_TABLE = "events";
+    
     private final String tablePrefix;
     private final DynamoDbClient client;
     private final DynamoDBProvisioner provisioner;
@@ -63,7 +66,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
             Map<String, AttributeValue> item = mapFromWorkflow(workflow);
             
             PutItemResponse resp = client.putItem(x -> x
-                .tableName(tablePrefix + "-" + workflowTableName)
+                .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
                 .conditionExpression("attribute_not_exists(id)")
                 .item(item)                    
             );            
@@ -81,7 +84,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
             Map<String, AttributeValue> item = mapFromWorkflow(workflow);
             
             PutItemResponse resp = client.putItem(x -> x
-                .tableName(tablePrefix + "-" + workflowTableName)
+                .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
                 .item(item)                    
             );            
             
@@ -102,7 +105,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
         eav.put(":effective_date", AttributeValue.builder().n(now.toString()).build());        
         
         QueryResponse response = client.query(x -> x
-            .tableName(tablePrefix + "-" + workflowTableName)
+            .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
             .indexName("ix_runnable")
             .projectionExpression("id")
             .keyConditionExpression("runnable = :r and next_execution <= :effective_date")
@@ -120,7 +123,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
     @Override
     public WorkflowInstance getWorkflowInstance(String id) {        
         GetItemResponse response = client.getItem(x -> x
-            .tableName(tablePrefix + "-" + workflowTableName)
+            .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
             .key(buildIdMap(id))
         );
         
@@ -189,6 +192,9 @@ public class DynamoDBPersistenceService implements PersistenceService {
                 
         result.put("id", AttributeValue.builder().s(source.getId()).build());
         result.put("next_exectution", AttributeValue.builder().n(source.getNextExecution().toString()).build());
+        result.put("workflow_status", AttributeValue.builder().s(source.getStatus().toString()).build());
+        result.put("description", AttributeValue.builder().s(source.getDescription()).build());
+        result.put("workflow_definition_id", AttributeValue.builder().s(source.getWorkflowDefintionId()).build());
         
         if (source.getStatus() == WorkflowStatus.RUNNABLE)
             result.put("runnable", AttributeValue.builder().n("1").build());
@@ -208,6 +214,22 @@ public class DynamoDBPersistenceService implements PersistenceService {
             ObjectInput in = new ObjectInputStream(bis)) {
             return (WorkflowInstance)(in.readObject());
         } 
+    }
+    
+    private Map<String, AttributeValue> mapFromSubscription(EventSubscription source) {
+        
+    }
+    
+    private EventSubscription mapToSubscription(Map<String, AttributeValue> source) {
+        
+    }
+    
+    private Map<String, AttributeValue> mapFromEvent(Event source) {
+        
+    }
+    
+    private Event mapToEvent(Map<String, AttributeValue> source) {
+        
     }
     
     private Map<String, AttributeValue> buildIdMap(String id) {
