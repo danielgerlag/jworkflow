@@ -1,6 +1,7 @@
 package net.jworkflow.providers.aws;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +20,8 @@ import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
@@ -27,15 +30,20 @@ public class DynamoDBProvisioner {
     
     private final DynamoDbClient client;
     private final String prefix;
+    private final ProvisionedThroughput defaultThroughput;    
     
-    
-    public DynamoDBProvisioner(Region region) {
+    public DynamoDBProvisioner(Region region, String prefix) {
         
         client = DynamoDbClient.builder()
-                .region(region)
-                .build();
+            .region(region)
+            .build();
         
+        defaultThroughput = ProvisionedThroughput.builder()
+            .readCapacityUnits(1L)
+            .writeCapacityUnits(1L)
+            .build();
     
+        this.prefix = prefix;
     }
     
     public void ensureTables() throws AwsServiceException, SdkClientException {
@@ -46,47 +54,44 @@ public class DynamoDBProvisioner {
     
     private CreateTableRequest buildWorkflowTableRequest() {        
         
-        Collection<AttributeDefinition> ads = new ArrayList<>();
-        Collection<KeySchemaElement> kse = new ArrayList<>();
-        
-        ads.add(AttributeDefinition.builder()
-                .attributeName("id")
-                .attributeType(ScalarAttributeType.S)
-                .build());
-        ads.add(AttributeDefinition.builder()
-                .attributeName("runnable")
-                .attributeType(ScalarAttributeType.N)
-                .build());
-        ads.add(AttributeDefinition.builder()
-                .attributeName("next_execution")
-                .attributeType(ScalarAttributeType.N)
-                .build());
-               
-        kse.add(KeySchemaElement.builder()
-            .attributeName("runnable")
-            .keyType(KeyType.HASH)
-            .build());
-        
-        kse.add(KeySchemaElement.builder()
-            .attributeName("next_execution")
-            .keyType(KeyType.RANGE)
-            .build());
-        
-        GlobalSecondaryIndex.builder()
-                .indexName("ix_runnable")
-                .keySchema(kse)
-                .projection(x -> x.)
-                .build();
-        
+        GlobalSecondaryIndex runnableIx = GlobalSecondaryIndex.builder()
+            .indexName("ix_runnable")
+            .keySchema(Arrays.asList(
+                KeySchemaElement.builder()
+                    .attributeName("runnable")
+                    .keyType(KeyType.HASH)
+                    .build(),
+                KeySchemaElement.builder()
+                    .attributeName("next_execution")
+                    .keyType(KeyType.RANGE)
+                    .build()
+            ))
+            .projection(x -> x.projectionType(ProjectionType.KEYS_ONLY))
+            .provisionedThroughput(defaultThroughput)
+            .build();        
         
         return CreateTableRequest.builder()
             .tableName(prefix + "-" + DynamoDBPersistenceService.workflowTableName)
             .billingMode(BillingMode.PAY_PER_REQUEST)
             .keySchema(key -> key
+                .attributeName("id")
+                .keyType(KeyType.HASH))
+            .attributeDefinitions(Arrays.asList(
+                AttributeDefinition.builder()
                     .attributeName("id")
-                    .keyType(KeyType.HASH))
-            .attributeDefinitions(ads)
-            .globalSecondaryIndexes(null)
+                    .attributeType(ScalarAttributeType.S)
+                    .build(),
+                AttributeDefinition.builder()
+                    .attributeName("runnable")
+                    .attributeType(ScalarAttributeType.N)
+                    .build(),
+                AttributeDefinition.builder()
+                    .attributeName("next_execution")
+                    .attributeType(ScalarAttributeType.N)
+                    .build()
+            ))
+            .globalSecondaryIndexes(runnableIx)
+            .provisionedThroughput(defaultThroughput)
             .build();
     }
     
