@@ -1,5 +1,6 @@
 package net.jworkflow.providers.aws;
 
+import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
     private final String tablePrefix;
     private final DynamoDbClient client;
     private final DynamoDBProvisioner provisioner;
-    
+    private final Gson gson;
     
     public DynamoDBPersistenceService(Region region, DynamoDBProvisioner provisioner, String tablePrefix) {
         client = DynamoDbClient.builder()
@@ -56,6 +57,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
         
         this.provisioner = provisioner;
         this.tablePrefix = tablePrefix;
+        this.gson = new Gson();
     }
     
     @Override
@@ -101,7 +103,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
         Long now = new Date().getTime();
         
         Map<String, AttributeValue> eav = new HashMap<>();
-        eav.put(":r", AttributeValue.builder().s("1").build());
+        eav.put(":r", AttributeValue.builder().n("1").build());
         eav.put(":effective_date", AttributeValue.builder().n(now.toString()).build());        
         
         QueryResponse response = client.query(x -> x
@@ -191,10 +193,11 @@ public class DynamoDBPersistenceService implements PersistenceService {
         Map<String, AttributeValue> result = new HashMap<>();
                 
         result.put("id", AttributeValue.builder().s(source.getId()).build());
-        result.put("next_exectution", AttributeValue.builder().n(source.getNextExecution().toString()).build());
         result.put("workflow_status", AttributeValue.builder().s(source.getStatus().toString()).build());
-        result.put("description", AttributeValue.builder().s(source.getDescription()).build());
         result.put("workflow_definition_id", AttributeValue.builder().s(source.getWorkflowDefintionId()).build());
+        
+        if (source.getNextExecution() != null)
+            result.put("next_exectution", AttributeValue.builder().n(source.getNextExecution().toString()).build());
         
         if (source.getStatus() == WorkflowStatus.RUNNABLE)
             result.put("runnable", AttributeValue.builder().n("1").build());
@@ -217,19 +220,19 @@ public class DynamoDBPersistenceService implements PersistenceService {
     }
     
     private Map<String, AttributeValue> mapFromSubscription(EventSubscription source) {
-        
+        throw new UnsupportedOperationException();
     }
     
     private EventSubscription mapToSubscription(Map<String, AttributeValue> source) {
-        
+        throw new UnsupportedOperationException();
     }
     
     private Map<String, AttributeValue> mapFromEvent(Event source) {
-        
+        throw new UnsupportedOperationException();
     }
     
     private Event mapToEvent(Map<String, AttributeValue> source) {
-        
+        throw new UnsupportedOperationException();
     }
     
     private Map<String, AttributeValue> buildIdMap(String id) {

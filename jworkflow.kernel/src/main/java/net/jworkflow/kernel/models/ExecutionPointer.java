@@ -1,12 +1,13 @@
 package net.jworkflow.kernel.models;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 
-public class ExecutionPointer {
+public class ExecutionPointer implements Serializable {
     public String id;
     public int stepId;
     public boolean active;

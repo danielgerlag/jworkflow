@@ -1,12 +1,13 @@
 package net.jworkflow.kernel.models;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class WorkflowInstance {
+public class WorkflowInstance implements Serializable {
     
     private String id;
     private String workflowDefintionId;

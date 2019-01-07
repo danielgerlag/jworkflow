@@ -1,5 +1,6 @@
 package net.jworkflow.kernel.models;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,7 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ExecutionPointerCollection implements Iterable<ExecutionPointer> {
+public class ExecutionPointerCollection implements Iterable<ExecutionPointer>, Serializable {
     
     private final List<ExecutionPointer> data;
     private final Map<String, ExecutionPointer> map;

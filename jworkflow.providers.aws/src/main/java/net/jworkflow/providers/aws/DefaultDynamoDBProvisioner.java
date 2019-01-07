@@ -68,7 +68,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
                     .build()
             ))
             .projection(x -> x.projectionType(ProjectionType.KEYS_ONLY))
-            .provisionedThroughput(defaultThroughput)
+            //.provisionedThroughput(defaultThroughput)
             .build();        
         
         return CreateTableRequest.builder()
@@ -92,7 +92,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
                     .build()
             ))
             .globalSecondaryIndexes(runnableIx)
-            .provisionedThroughput(defaultThroughput)
+            //.provisionedThroughput(defaultThroughput)
             .build();
     }
     
@@ -111,7 +111,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
                     .build()
             ))
             .projection(x -> x.projectionType(ProjectionType.ALL))
-            .provisionedThroughput(defaultThroughput)
+            //.provisionedThroughput(defaultThroughput)
             .build();        
         
         return CreateTableRequest.builder()
@@ -135,7 +135,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
                     .build()
             ))
             .globalSecondaryIndexes(slugIx)
-            .provisionedThroughput(defaultThroughput)
+            //.provisionedThroughput(defaultThroughput)
             .build();
     }
     
@@ -154,7 +154,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
                     .build()
             ))
             .projection(x -> x.projectionType(ProjectionType.KEYS_ONLY))
-            .provisionedThroughput(defaultThroughput)
+            //.provisionedThroughput(defaultThroughput)
             .build();
         
         GlobalSecondaryIndex processedIx = GlobalSecondaryIndex.builder()
@@ -170,7 +170,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
                     .build()
             ))
             .projection(x -> x.projectionType(ProjectionType.KEYS_ONLY))
-            .provisionedThroughput(defaultThroughput)
+            //.provisionedThroughput(defaultThroughput)
             .build();
         
         return CreateTableRequest.builder()
@@ -198,7 +198,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
                     .build()
             ))
             .globalSecondaryIndexes(Arrays.asList(slugIx, processedIx))
-            .provisionedThroughput(defaultThroughput)
+            //.provisionedThroughput(defaultThroughput)
             .build();
     }
     
