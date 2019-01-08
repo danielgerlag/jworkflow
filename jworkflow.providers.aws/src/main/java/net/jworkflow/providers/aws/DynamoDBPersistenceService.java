@@ -38,6 +38,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class DynamoDBPersistenceService implements PersistenceService {
 
@@ -64,36 +65,25 @@ public class DynamoDBPersistenceService implements PersistenceService {
     public String createNewWorkflow(WorkflowInstance workflow) {
         workflow.setId(UUID.randomUUID().toString());
         
-        try {
-            Map<String, AttributeValue> item = mapFromWorkflow(workflow);
+        Map<String, AttributeValue> item = mapFromWorkflow(workflow);
             
-            PutItemResponse resp = client.putItem(x -> x
-                .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
-                .conditionExpression("attribute_not_exists(id)")
-                .item(item)                    
-            );            
-            
-        } catch (IOException ex) {
-            Logger.getLogger(DynamoDBPersistenceService.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException(ex);
-        }
+        PutItemResponse resp = client.putItem(x -> x
+            .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
+            .conditionExpression("attribute_not_exists(id)")
+            .item(item)                    
+        );
+        
         return workflow.getId();
     }
 
     @Override
     public void persistWorkflow(WorkflowInstance workflow) {
-        try {
-            Map<String, AttributeValue> item = mapFromWorkflow(workflow);
+        Map<String, AttributeValue> item = mapFromWorkflow(workflow);
             
-            PutItemResponse resp = client.putItem(x -> x
-                .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
-                .item(item)                    
-            );            
-            
-        } catch (IOException ex) {
-            Logger.getLogger(DynamoDBPersistenceService.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException(ex);
-        }
+        PutItemResponse resp = client.putItem(x -> x
+            .tableName(tablePrefix + "-" + WORKFLOW_TABLE)
+            .item(item)                    
+        );
     }
 
     @Override
@@ -129,67 +119,161 @@ public class DynamoDBPersistenceService implements PersistenceService {
             .key(buildIdMap(id))
         );
         
-        try {
-            return mapToWorkflow(response.item());
-            
-        } catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(DynamoDBPersistenceService.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException(ex);
-        }                
+        return mapToWorkflow(response.item());                
     }
 
     @Override
     public String createEventSubscription(EventSubscription subscription) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        subscription.id = UUID.randomUUID().toString();
+        
+        Map<String, AttributeValue> item = mapFromSubscription(subscription);
+            
+        PutItemResponse resp = client.putItem(x -> x
+            .tableName(tablePrefix + "-" + SUBSCRIPTION_TABLE)
+            .conditionExpression("attribute_not_exists(id)")
+            .item(item)                    
+        );
+        return subscription.id;
     }
 
     @Override
     public Iterable<EventSubscription> getSubcriptions(String eventName, String eventKey, Date asOf) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Collection<EventSubscription> result = new ArrayList<>();
+                
+        Long asOfMs = asOf.getTime();
+        
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":slug", AttributeValue.builder().s(eventName + ":" + eventKey).build());
+        eav.put(":as_of", AttributeValue.builder().n(asOfMs.toString()).build());        
+        
+        QueryResponse response = client.query(x -> x
+            .tableName(tablePrefix + "-" + SUBSCRIPTION_TABLE)
+            .indexName("ix_slug")
+            .select(Select.ALL_PROJECTED_ATTRIBUTES)
+            .keyConditionExpression("event_slug = :slug and subscribe_as_of <= :as_of")
+            .scanIndexForward(true)
+            .expressionAttributeValues(eav)
+        );
+        
+        response.items().stream().forEach((item) -> {            
+            result.add(mapToSubscription(item));
+        });
+        
+        return result;
     }
 
     @Override
     public void terminateSubscription(String eventSubscriptionId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        client.deleteItem(x -> x
+            .tableName(tablePrefix + "-" + SUBSCRIPTION_TABLE)
+            .key(buildIdMap(eventSubscriptionId))
+        );
     }
 
     @Override
     public String createEvent(Event newEvent) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        newEvent.id = UUID.randomUUID().toString();
+        
+        Map<String, AttributeValue> item = mapFromEvent(newEvent);
+            
+        PutItemResponse resp = client.putItem(x -> x
+            .tableName(tablePrefix + "-" + EVENT_TABLE)
+            .conditionExpression("attribute_not_exists(id)")
+            .item(item)                    
+        );
+        return newEvent.id;
     }
 
     @Override
     public Event getEvent(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        GetItemResponse response = client.getItem(x -> x
+            .tableName(tablePrefix + "-" + EVENT_TABLE)
+            .key(buildIdMap(id))
+        );
+        
+        return mapToEvent(response.item());
     }
 
     @Override
     public Iterable<String> getRunnableEvents() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Collection<String> result = new ArrayList<>();
+                
+        Long now = new Date().getTime();
+        
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":n", AttributeValue.builder().n("1").build());
+        eav.put(":effective_date", AttributeValue.builder().n(now.toString()).build());        
+        
+        QueryResponse response = client.query(x -> x
+            .tableName(tablePrefix + "-" + EVENT_TABLE)
+            .indexName("ix_not_processed")
+            .projectionExpression("id")
+            .keyConditionExpression("not_processed = :n and event_time <= :effective_date")
+            .scanIndexForward(true)
+            .expressionAttributeValues(eav)
+        );
+        
+        response.items().stream().forEach((item) -> {            
+            result.add(item.get("id").s());
+        });
+        
+        return result;
     }
 
     @Override
     public Iterable<String> getEvents(String eventName, String eventKey, Date asOf) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Collection<String> result = new ArrayList<>();
+                
+        Long asOfMs = asOf.getTime();
+        
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":slug", AttributeValue.builder().s(eventName + ":" + eventKey).build());
+        eav.put(":effective_date", AttributeValue.builder().n(asOfMs.toString()).build());        
+        
+        QueryResponse response = client.query(x -> x
+            .tableName(tablePrefix + "-" + EVENT_TABLE)
+            .indexName("ix_slug")
+            .projectionExpression("id")
+            .keyConditionExpression("event_slug = :slug and event_time >= :effective_date")
+            .scanIndexForward(true)
+            .expressionAttributeValues(eav)
+        );
+        
+        response.items().stream().forEach((item) -> {            
+            result.add(item.get("id").s());
+        });
+        
+        return result;
     }
 
     @Override
     public void markEventProcessed(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        client.updateItem(x -> x
+            .tableName(tablePrefix + "-" + EVENT_TABLE)
+            .key(buildIdMap(id))
+            .updateExpression("REMOVE not_processed")
+        );
     }
 
     @Override
     public void markEventUnprocessed(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":n", AttributeValue.builder().n("1").build());
+                
+        client.updateItem(x -> x
+            .tableName(tablePrefix + "-" + EVENT_TABLE)
+            .key(buildIdMap(id))
+            .updateExpression("ADD not_processed = :n")
+            .expressionAttributeValues(eav)
+        );
     }
-
 
     @Override
     public void provisionStore() {
         provisioner.ensureTables();
     }    
     
-    private Map<String, AttributeValue> mapFromWorkflow(WorkflowInstance source) throws IOException {        
+    private Map<String, AttributeValue> mapFromWorkflow(WorkflowInstance source) {
         Map<String, AttributeValue> result = new HashMap<>();
                 
         result.put("id", AttributeValue.builder().s(source.getId()).build());
@@ -202,37 +286,88 @@ public class DynamoDBPersistenceService implements PersistenceService {
         if (source.getStatus() == WorkflowStatus.RUNNABLE)
             result.put("runnable", AttributeValue.builder().n("1").build());
         
+        result.put("instance", AttributeValue.builder().s(gson.toJson(source)).build());
+        
+        /*
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             ObjectOutputStream out = new ObjectOutputStream(baos);
             out.writeObject(source);
             out.flush();        
             result.put("instance", AttributeValue.builder().b(SdkBytes.fromByteArray(baos.toByteArray())).build());
         }
-        
+        */
         return result;        
     }
     
-    private WorkflowInstance mapToWorkflow(Map<String, AttributeValue> source) throws IOException, ClassNotFoundException {
+    private WorkflowInstance mapToWorkflow(Map<String, AttributeValue> source) {
+        
+        return gson.fromJson(source.get("instance").s(), WorkflowInstance.class);
+        /*
         try (ByteArrayInputStream bis = new ByteArrayInputStream(source.get("instance").b().asByteArray());
             ObjectInput in = new ObjectInputStream(bis)) {
             return (WorkflowInstance)(in.readObject());
         } 
+        */
     }
     
     private Map<String, AttributeValue> mapFromSubscription(EventSubscription source) {
-        throw new UnsupportedOperationException();
+        Map<String, AttributeValue> result = new HashMap<>();
+                
+        result.put("id", AttributeValue.builder().s(source.id).build());
+        result.put("event_name", AttributeValue.builder().s(source.eventName).build());
+        result.put("event_key", AttributeValue.builder().s(source.eventKey).build());
+        result.put("workflow_id", AttributeValue.builder().s(source.workflowId).build());
+        result.put("step_id", AttributeValue.builder().s(String.valueOf(source.stepId)).build());
+        result.put("subscribe_as_of", AttributeValue.builder().n(String.valueOf(source.subscribeAsOfUtc.getTime())).build());
+        result.put("event_slug", AttributeValue.builder().s(source.eventName + ":" + source.eventKey).build());
+        
+        return result;
     }
     
     private EventSubscription mapToSubscription(Map<String, AttributeValue> source) {
-        throw new UnsupportedOperationException();
+        EventSubscription result = new EventSubscription();
+        result.id = source.get("id").s();
+        result.eventName = source.get("event_name").s();
+        result.eventKey = source.get("event_key").s();
+        result.workflowId = source.get("workflow_id").s();
+        result.stepId = Integer.parseInt(source.get("step_id").s());
+        
+        Long asOfMs = Long.parseLong(source.get("subscribe_as_of").n());
+        result.subscribeAsOfUtc = new Date(asOfMs);
+        
+        return result;
     }
     
     private Map<String, AttributeValue> mapFromEvent(Event source) {
-        throw new UnsupportedOperationException();
+        Map<String, AttributeValue> result = new HashMap<>();
+                
+        result.put("id", AttributeValue.builder().s(source.id).build());
+        result.put("event_name", AttributeValue.builder().s(source.eventName).build());
+        result.put("event_key", AttributeValue.builder().s(source.eventKey).build());
+        result.put("event_data", AttributeValue.builder().s(gson.toJson(source.eventData)).build());
+        //result.put("event_data_class", AttributeValue.builder().s("").build());
+        result.put("event_time", AttributeValue.builder().n(String.valueOf(source.eventTimeUtc.getTime())).build());
+        result.put("event_slug", AttributeValue.builder().s(source.eventName + ":" + source.eventKey).build());
+        
+        if (!source.isProcessed)
+            result.put("not_processed", AttributeValue.builder().n("1").build());
+        
+        return result;
     }
     
     private Event mapToEvent(Map<String, AttributeValue> source) {
-        throw new UnsupportedOperationException();
+        Event result = new Event();
+        result.id = source.get("id").s();
+        result.eventName = source.get("event_name").s();
+        result.eventKey = source.get("event_key").s();
+        result.eventData = gson.fromJson(source.get("workflow_id").s(), Object.class);
+        result.isProcessed = !source.containsKey("not_processed");
+        
+        //Class.forName("")
+        Long asOfMs = Long.parseLong(source.get("event_time").n());        
+        result.eventTimeUtc = new Date(asOfMs);
+        
+        return result;
     }
     
     private Map<String, AttributeValue> buildIdMap(String id) {

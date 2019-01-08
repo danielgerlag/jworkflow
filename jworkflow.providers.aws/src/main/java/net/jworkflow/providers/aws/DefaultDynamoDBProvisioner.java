@@ -48,7 +48,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
         if (!tableExists(prefix + "-" + DynamoDBPersistenceService.SUBSCRIPTION_TABLE))
             createTable(buildSubscriptionTableRequest());
         
-        if (!tableExists(prefix + "-" + DynamoDBPersistenceService.SUBSCRIPTION_TABLE))
+        if (!tableExists(prefix + "-" + DynamoDBPersistenceService.EVENT_TABLE))
             createTable(buildEventTableRequest());
     }
     
