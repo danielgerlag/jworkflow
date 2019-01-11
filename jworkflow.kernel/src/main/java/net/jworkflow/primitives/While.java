@@ -31,13 +31,7 @@ public class While implements StepBody {
             ControlStepData persistenceData = (ControlStepData)context.getPersistenceData();                               
 
             if (persistenceData.childrenActive) {
-                
-                boolean complete = true;
-                for (String childId: context.getExecutionPointer().children) {
-                    complete = complete && context.getWorkflow().isBranchComplete(childId);
-                }                       
-
-                if (complete)
+                if (context.getWorkflow().isBranchComplete(context.getExecutionPointer().id))
                     return ExecutionResult.persist(null);
                 else
                     return ExecutionResult.persist(persistenceData);

@@ -106,27 +106,10 @@ public class WorkflowInstance implements Serializable {
         this.executionPointers = new ExecutionPointerCollection(pointers);
     }
     
-    public boolean isBranchComplete(String rootId) {
-        
-        ExecutionPointer root = executionPointers.findById(rootId);
-        
-        if (root.endTimeUtc == null)
-            return false;
-
-        Collection<ExecutionPointer> seed = executionPointers.findMany(x -> rootId.equals(x.predecessorId));
-        
-        Queue<ExecutionPointer> queue = new LinkedList<>(seed);
-
-        while (!queue.isEmpty()) {
-            ExecutionPointer item = queue.remove();
-            if (item.endTimeUtc == null) {
-                return false;
-            }
-
-            executionPointers.findMany(x -> item.id.equals(x.predecessorId))                
-                .forEach(child -> queue.add(child));
-        }
-
-        return true;        
+    public boolean isBranchComplete(String parentId) {
+        return executionPointers
+                .findByStackFrame(parentId)
+                .stream()
+                .allMatch(x -> x.endTimeUtc != null);
     }
 }
