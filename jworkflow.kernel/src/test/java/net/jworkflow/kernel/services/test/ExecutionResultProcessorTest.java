@@ -37,6 +37,7 @@ public class ExecutionResultProcessorTest {
         //arrange
         WorkflowDefinition definition = new WorkflowDefinition();
         ExecutionPointer pointer1 = new ExecutionPointer();
+        pointer1.id = "1";
         pointer1.active = true;
         pointer1.stepId = 0;
         pointer1.status = PointerStatus.Running;
@@ -73,6 +74,7 @@ public class ExecutionResultProcessorTest {
         Object persistenceData = new Object();
         WorkflowDefinition definition = new WorkflowDefinition();
         ExecutionPointer pointer = new ExecutionPointer();
+        pointer.id = "1";
         pointer.active = true;
         pointer.stepId = 0;
         pointer.status = PointerStatus.Running;
@@ -94,6 +96,7 @@ public class ExecutionResultProcessorTest {
         //arrange
         WorkflowDefinition definition = new WorkflowDefinition();
         ExecutionPointer pointer = new ExecutionPointer();
+        pointer.id = "1";
         pointer.active = true;
         pointer.stepId = 0;
         pointer.status = PointerStatus.Running;
@@ -118,11 +121,14 @@ public class ExecutionResultProcessorTest {
         //arrange            
         WorkflowDefinition definition = new WorkflowDefinition();
         ExecutionPointer pointer1 = new ExecutionPointer();
+        pointer1.id = "1";
         pointer1.active = true;
         pointer1.stepId = 0;
         pointer1.status = PointerStatus.Running;        
         ExecutionPointer pointer2 = new ExecutionPointer();
+        pointer2.id = "2";
         ExecutionPointer pointer3 = new ExecutionPointer();
+        pointer3.id = "3";
         StepOutcome outcome1 = new StepOutcome();
         outcome1.setNextStep(1);
         outcome1.setValue(10);
@@ -158,6 +164,7 @@ public class ExecutionResultProcessorTest {
         Object persistenceData = new Object();
         WorkflowDefinition definition = new WorkflowDefinition();
         ExecutionPointer pointer = new ExecutionPointer();
+        pointer.id = "1";
         pointer.active = true;
         pointer.stepId = 0;
         pointer.status = PointerStatus.Running;        
@@ -181,6 +188,7 @@ public class ExecutionResultProcessorTest {
         int child = 2;
         WorkflowDefinition definition = new WorkflowDefinition();
         ExecutionPointer pointer = new ExecutionPointer();
+        pointer.id = "1";
         pointer.active = true;
         pointer.stepId = 0;        
         ExecutionPointer childPointer = new ExecutionPointer();
