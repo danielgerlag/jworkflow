@@ -2,47 +2,23 @@ package net.jworkflow.providers.aws;
 
 import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.Modifier;
-import java.time.Instant;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import jdk.nashorn.internal.ir.debug.JSONWriter;
 import net.jworkflow.kernel.interfaces.PersistenceService;
 import net.jworkflow.kernel.models.Event;
 import net.jworkflow.kernel.models.EventSubscription;
-import net.jworkflow.kernel.models.ExecutionPointer;
 import net.jworkflow.kernel.models.WorkflowInstance;
 import net.jworkflow.kernel.models.WorkflowStatus;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.BillingMode;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
-import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
-import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class DynamoDBPersistenceService implements PersistenceService {
@@ -291,28 +267,11 @@ public class DynamoDBPersistenceService implements PersistenceService {
                 
         result.put("instance", AttributeValue.builder().s(JsonWriter.objectToJson(source)).build());
         
-        /*
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ObjectOutputStream out = new ObjectOutputStream(baos);
-            out.writeObject(source);
-            out.flush();        
-            result.put("instance", AttributeValue.builder().b(SdkBytes.fromByteArray(baos.toByteArray())).build());
-        }
-        */
         return result;        
     }
     
     private WorkflowInstance mapToWorkflow(Map<String, AttributeValue> source) {
-        
         return (WorkflowInstance)(JsonReader.jsonToJava(source.get("instance").s()));
-
-        //return gson.fromJson(source.get("instance").s(), WorkflowInstance.class);
-        /*
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(source.get("instance").b().asByteArray());
-            ObjectInput in = new ObjectInputStream(bis)) {
-            return (WorkflowInstance)(in.readObject());
-        } 
-        */
     }
     
     private Map<String, AttributeValue> mapFromSubscription(EventSubscription source) {
@@ -350,7 +309,6 @@ public class DynamoDBPersistenceService implements PersistenceService {
         result.put("event_name", AttributeValue.builder().s(source.eventName).build());
         result.put("event_key", AttributeValue.builder().s(source.eventKey).build());
         result.put("event_data", AttributeValue.builder().s(JsonWriter.objectToJson(source.eventData)).build());
-        //result.put("event_data_class", AttributeValue.builder().s("").build());
         result.put("event_time", AttributeValue.builder().n(String.valueOf(source.eventTimeUtc.getTime())).build());
         result.put("event_slug", AttributeValue.builder().s(source.eventName + ":" + source.eventKey).build());
         
@@ -365,10 +323,9 @@ public class DynamoDBPersistenceService implements PersistenceService {
         result.id = source.get("id").s();
         result.eventName = source.get("event_name").s();
         result.eventKey = source.get("event_key").s();
-        result.eventData = JsonReader.jsonToJava(source.get("workflow_id").s());
+        result.eventData = JsonReader.jsonToJava(source.get("event_data").s());
         result.isProcessed = !source.containsKey("not_processed");
         
-        //Class.forName("")
         Long asOfMs = Long.parseLong(source.get("event_time").n());        
         result.eventTimeUtc = new Date(asOfMs);
         

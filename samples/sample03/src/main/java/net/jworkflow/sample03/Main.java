@@ -33,8 +33,7 @@ public class Main {
         
         //module.useQueue(new SQSProvider(Region.US_WEST_1));
         //module.useDistibutedLock(new DynamoDBLockProvider(Region.US_WEST_1, "jworkflowLocks"));
-        module.usePersistence(new DynamoDBPersistenceProvider(Region.US_WEST_1, "test4"));
-        
+        //module.usePersistence(new DynamoDBPersistenceProvider(Region.US_WEST_1, "test5"));        
         
         module.build();
         WorkflowHost host = module.getHost();

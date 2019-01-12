@@ -1,6 +1,11 @@
 package net.jworkflow.providers.aws;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -42,16 +47,26 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
     
     @Override
     public void ensureTables() throws AwsServiceException, SdkClientException {
-        if (!tableExists(prefix + "-" + DynamoDBPersistenceService.WORKFLOW_TABLE))
-            createTable(buildWorkflowTableRequest());
+               
+        ForkJoinTask task1 = ForkJoinPool.commonPool().submit(() -> { 
+            if (!tableExists(prefix + "-" + DynamoDBPersistenceService.WORKFLOW_TABLE))
+                createTable(buildWorkflowTableRequest());
+        });
         
-        if (!tableExists(prefix + "-" + DynamoDBPersistenceService.SUBSCRIPTION_TABLE))
-            createTable(buildSubscriptionTableRequest());
+        ForkJoinTask task2 = ForkJoinPool.commonPool().submit(() -> { 
+            if (!tableExists(prefix + "-" + DynamoDBPersistenceService.SUBSCRIPTION_TABLE))
+                createTable(buildSubscriptionTableRequest());
+        });
         
-        if (!tableExists(prefix + "-" + DynamoDBPersistenceService.EVENT_TABLE))
-            createTable(buildEventTableRequest());
-    }
-    
+        ForkJoinTask task3 = ForkJoinPool.commonPool().submit(() -> { 
+            if (!tableExists(prefix + "-" + DynamoDBPersistenceService.EVENT_TABLE))
+                createTable(buildEventTableRequest());
+        });
+        
+        task1.join();
+        task2.join();
+        task3.join();        
+    }    
     
     private CreateTableRequest buildWorkflowTableRequest() {        
         
@@ -212,7 +227,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
         
         int i = 0;
         boolean created = false;
-        while ((i < 10) && (!created)) {
+        while ((i < 20) && (!created)) {
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException ex) {
