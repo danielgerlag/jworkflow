@@ -214,7 +214,7 @@ public class DefaultDynamoDBProvisioner implements DynamoDBProvisioner {
         boolean created = false;
         while ((i < 10) && (!created)) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(3000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.SEVERE, null, ex);
             }

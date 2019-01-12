@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.jworkflow.providers.aws.DynamoDBLockProvider;
+import net.jworkflow.providers.aws.DynamoDBPersistenceProvider;
 import net.jworkflow.providers.aws.SQSProvider;
 import net.jworkflow.providers.rabbitmq.RabbitMQProvider;
 import net.jworkflow.providers.redis.RedisLockServiceProvider;
@@ -32,6 +33,7 @@ public class Main {
         
         //module.useQueue(new SQSProvider(Region.US_WEST_1));
         //module.useDistibutedLock(new DynamoDBLockProvider(Region.US_WEST_1, "jworkflowLocks"));
+        module.usePersistence(new DynamoDBPersistenceProvider(Region.US_WEST_1, "test4"));
         
         
         module.build();

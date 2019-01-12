@@ -1,12 +1,16 @@
 package net.jworkflow.providers.aws;
 
+import com.cedarsoftware.util.io.JsonReader;
+import com.cedarsoftware.util.io.JsonWriter;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Modifier;
 import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -18,6 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jdk.nashorn.internal.ir.debug.JSONWriter;
 import net.jworkflow.kernel.interfaces.PersistenceService;
 import net.jworkflow.kernel.models.Event;
 import net.jworkflow.kernel.models.EventSubscription;
@@ -49,7 +54,6 @@ public class DynamoDBPersistenceService implements PersistenceService {
     private final String tablePrefix;
     private final DynamoDbClient client;
     private final DynamoDBProvisioner provisioner;
-    private final Gson gson;
     
     public DynamoDBPersistenceService(Region region, DynamoDBProvisioner provisioner, String tablePrefix) {
         client = DynamoDbClient.builder()
@@ -58,7 +62,6 @@ public class DynamoDBPersistenceService implements PersistenceService {
         
         this.provisioner = provisioner;
         this.tablePrefix = tablePrefix;
-        this.gson = new Gson();
     }
     
     @Override
@@ -285,8 +288,8 @@ public class DynamoDBPersistenceService implements PersistenceService {
         
         if (source.getStatus() == WorkflowStatus.RUNNABLE)
             result.put("runnable", AttributeValue.builder().n("1").build());
-        
-        result.put("instance", AttributeValue.builder().s(gson.toJson(source)).build());
+                
+        result.put("instance", AttributeValue.builder().s(JsonWriter.objectToJson(source)).build());
         
         /*
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -301,7 +304,9 @@ public class DynamoDBPersistenceService implements PersistenceService {
     
     private WorkflowInstance mapToWorkflow(Map<String, AttributeValue> source) {
         
-        return gson.fromJson(source.get("instance").s(), WorkflowInstance.class);
+        return (WorkflowInstance)(JsonReader.jsonToJava(source.get("instance").s()));
+
+        //return gson.fromJson(source.get("instance").s(), WorkflowInstance.class);
         /*
         try (ByteArrayInputStream bis = new ByteArrayInputStream(source.get("instance").b().asByteArray());
             ObjectInput in = new ObjectInputStream(bis)) {
@@ -344,7 +349,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
         result.put("id", AttributeValue.builder().s(source.id).build());
         result.put("event_name", AttributeValue.builder().s(source.eventName).build());
         result.put("event_key", AttributeValue.builder().s(source.eventKey).build());
-        result.put("event_data", AttributeValue.builder().s(gson.toJson(source.eventData)).build());
+        result.put("event_data", AttributeValue.builder().s(JsonWriter.objectToJson(source.eventData)).build());
         //result.put("event_data_class", AttributeValue.builder().s("").build());
         result.put("event_time", AttributeValue.builder().n(String.valueOf(source.eventTimeUtc.getTime())).build());
         result.put("event_slug", AttributeValue.builder().s(source.eventName + ":" + source.eventKey).build());
@@ -360,7 +365,7 @@ public class DynamoDBPersistenceService implements PersistenceService {
         result.id = source.get("id").s();
         result.eventName = source.get("event_name").s();
         result.eventKey = source.get("event_key").s();
-        result.eventData = gson.fromJson(source.get("workflow_id").s(), Object.class);
+        result.eventData = JsonReader.jsonToJava(source.get("workflow_id").s());
         result.isProcessed = !source.containsKey("not_processed");
         
         //Class.forName("")
