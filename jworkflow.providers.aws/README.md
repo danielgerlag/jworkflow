@@ -1,6 +1,7 @@
 # AWS providers for JWorkflow
 
-Provides support to run multi-node clusters of [JWorkflow](../README.md), by providing a distributed lock manager (via DynamoDB) and/or a shared work queue (via Simple Queue Service).
+* Provides support to persist long running workflows for [JWorkflow](../README.md) backed by Amazon DynamoDB
+* Provides support to run multi-node clusters of [JWorkflow](../README.md), by providing a distributed lock manager (via DynamoDB) and/or a shared work queue (via Simple Queue Service).
 
 ## Installing
 
@@ -22,6 +23,25 @@ Provides support to run multi-node clusters of [JWorkflow](../README.md), by pro
 dependencies { 
     compile 'net.jworkflow:jworkflow.providers.aws:>0.5-SNAPSHOT'
 }
+```
+
+## Usage for Persistence
+
+
+```java
+import software.amazon.awssdk.regions.Region;
+import net.jworkflow.providers.aws.DynamoDBPersistenceProvider;
+...
+...
+
+```java
+WorkflowModule module = new WorkflowModule();
+
+module.usePersistence(new DynamoDBPersistenceProvider(Region.US_WEST_1, "table-prefix"));
+
+module.build();
+WorkflowHost host = module.getHost();
+
 ```
 
 
