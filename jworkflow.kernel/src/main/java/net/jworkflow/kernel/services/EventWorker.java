@@ -13,58 +13,45 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class EventThread implements Runnable {
+public class EventWorker extends QueueWorker {
         
     private final PersistenceService persistenceProvider;
-    private final QueueService queueProvider;
     private final LockService lockProvider;
-    private final Logger logger;
     
     @Inject
-    public EventThread(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, Logger logger) {
+    public EventWorker(PersistenceService persistenceProvider, QueueService queueProvider, LockService lockProvider, Logger logger) {
+        super(queueProvider, logger);
         this.persistenceProvider = persistenceProvider;
-        this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;        
-        this.logger = logger;        
+    }
+    
+    @Override
+    protected QueueType getQueueType() {
+        return QueueType.EVENT;
     }
 
     @Override
-    public void run() {
+    protected void executeItem(String item) throws Exception {
+        if (!lockProvider.acquireLock("evt:" + item)) {
+            logger.log(Level.INFO, String.format("Event %s locked", item));
+            return;
+        }
+
         try {
-            String eventId = queueProvider.dequeueForProcessing(QueueType.EVENT);
-            
-            if (eventId == null) {
-                if (!queueProvider.isDequeueBlocking()) {
-                    Thread.sleep(1000);
-                }
-                return;
-            }
-            
-            if (!lockProvider.acquireLock("evt:" + eventId)) {
-                logger.log(Level.INFO, String.format("Event %s locked", eventId));
-                return;
-            }
-            
-            try {
-                Event evt = persistenceProvider.getEvent(eventId);
-                if (evt.eventTimeUtc.before(new Date())) {
-                    Iterable<EventSubscription> subs = persistenceProvider.getSubcriptions(evt.eventName, evt.eventKey, evt.eventTimeUtc);
-                    boolean success = true;
+            Event evt = persistenceProvider.getEvent(item);
+            if (evt.eventTimeUtc.before(new Date())) {
+                Iterable<EventSubscription> subs = persistenceProvider.getSubcriptions(evt.eventName, evt.eventKey, evt.eventTimeUtc);
+                boolean success = true;
 
-                    for (EventSubscription sub : subs)
-                        success = success && seedSubscription(evt, sub);
+                for (EventSubscription sub : subs)
+                    success = success && seedSubscription(evt, sub);
 
-                    if (success)
-                        persistenceProvider.markEventProcessed(eventId);
-                }
-            }
-            finally {
-                lockProvider.releaseLock("evt:" + eventId);                        
+                if (success)
+                    persistenceProvider.markEventProcessed(item);
             }
         }
-        catch (Exception ex) {
-
-            logger.log(Level.SEVERE, ex.toString());
+        finally {
+            lockProvider.releaseLock("evt:" + item);                        
         }
     }
     
@@ -101,5 +88,10 @@ public class EventThread implements Runnable {
             lockProvider.releaseLock(sub.workflowId);
             queueProvider.queueForProcessing(QueueType.WORKFLOW, sub.workflowId);
         }        
+    }
+
+    @Override
+    protected int getThreadCount() {
+        return 1;
     }
 }

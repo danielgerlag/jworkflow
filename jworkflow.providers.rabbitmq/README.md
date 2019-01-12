@@ -11,7 +11,7 @@ Provides support to run multi-node clusters of [JWorkflow](../README.md), by pro
     <dependency>
         <groupId>net.jworkflow</groupId>
         <artifactId>jworkflow.providers.rabbitmq</artifactId>
-        <version>0.4</version>
+        <version>0.5-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```
@@ -20,7 +20,7 @@ Provides support to run multi-node clusters of [JWorkflow](../README.md), by pro
 
 ```Gradle
 dependencies { 
-    compile 'net.jworkflow:jworkflow.providers.rabbitmq:0.4'
+    compile 'net.jworkflow:jworkflow.providers.rabbitmq:0.5-SNAPSHOT'
 }
 ```
 

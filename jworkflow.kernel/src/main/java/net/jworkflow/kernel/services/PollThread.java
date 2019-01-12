@@ -4,28 +4,31 @@ import net.jworkflow.kernel.interfaces.LockService;
 import net.jworkflow.kernel.interfaces.QueueService;
 import net.jworkflow.kernel.interfaces.PersistenceService;
 import com.google.inject.Inject;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import net.jworkflow.kernel.models.QueueType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.jworkflow.kernel.interfaces.BackgroundService;
 
-
-public class PollThread implements Runnable {
+public class PollThread implements BackgroundService {
     
     private final PersistenceService persistence;
     private final QueueService queueProvider;
     private final LockService lockProvider;
     private final Logger logger;
-           
+    private final ScheduledExecutorService scheduler;
     
     @Inject
     public PollThread(PersistenceService persistence, QueueService queueProvider, LockService lockProvider, Logger logger) {
         this.persistence = persistence;
         this.queueProvider = queueProvider;
         this.lockProvider = lockProvider;        
-        this.logger = logger;        
+        this.logger = logger;
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
-    @Override
     public void run() {
         logger.log(Level.INFO, "Polling for runnables");
         try {
@@ -63,6 +66,13 @@ public class PollThread implements Runnable {
         }        
     }
 
-    
-}
+    @Override
+    public void start() {
+        scheduler.scheduleAtFixedRate(() -> run(), 10, 10, TimeUnit.SECONDS);
+    }
 
+    @Override
+    public void stop() {
+        scheduler.shutdownNow();
+    }
+}

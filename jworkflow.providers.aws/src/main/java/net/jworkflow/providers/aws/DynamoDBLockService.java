@@ -193,15 +193,15 @@ public class DynamoDBLockService implements LockService {
         
         int i = 0;
         boolean created = false;
-        while ((i < 10) && (!created)) {
-            try {
+        try {
+            while ((i < 10) && (!created)) {
                 Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.SEVERE, null, ex);
+                DescribeTableResponse r = client.describeTable(x -> x.tableName(tableName));
+                created = (r.table().tableStatus() == TableStatus.ACTIVE);
+                i++;
             }
-            DescribeTableResponse r = client.describeTable(x -> x.tableName(tableName));
-            created = (r.table().tableStatus() == TableStatus.ACTIVE);
-            i++;
+        } catch (InterruptedException ex) {
+                Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

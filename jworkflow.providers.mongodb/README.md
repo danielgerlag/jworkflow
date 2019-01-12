@@ -11,7 +11,7 @@ Provides support to persist workflows running on [JWorkflow](../README.md) to a 
     <dependency>
         <groupId>net.jworkflow</groupId>
         <artifactId>jworkflow.providers.mongodb</artifactId>
-        <version>0.4</version>
+        <version>0.5-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```
@@ -20,7 +20,7 @@ Provides support to persist workflows running on [JWorkflow](../README.md) to a 
 
 ```Gradle
 dependencies { 
-    compile 'net.jworkflow:jworkflow.providers.mongodb:0.4'
+    compile 'net.jworkflow:jworkflow.providers.mongodb:0.5-SNAPSHOT'
 }
 ```
 
