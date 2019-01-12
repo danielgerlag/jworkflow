@@ -151,6 +151,7 @@ There are several persistence providers available as seperate packages.
 
 * Memory Persistence Provider *(Default provider, for demo and testing purposes)*
 * [MongoDB](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.mongodb)
+* [Amazon DynamoDB](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.aws)
 * *(more to come soon...)*
 
 ### Multi-node clusters
@@ -168,7 +169,7 @@ By default, the WorkflowHost service will run as a single node using the built-i
 
 * SingleNodeLockProvider *(Default built-in provider)*
 * [Redis](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.redis)
-* [AWS DynamoDB](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.aws)
+* [Amazon DynamoDB](https://github.com/danielgerlag/jworkflow/tree/master/jworkflow.providers.aws)
 * *(more to come soon...)*
 
 ## Samples
