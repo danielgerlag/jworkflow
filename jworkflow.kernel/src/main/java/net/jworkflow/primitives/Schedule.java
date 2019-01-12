@@ -24,13 +24,8 @@ public class Schedule implements StepBody {
             if (!persistenceData.elapsed) {
                 return ExecutionResult.branch(new Object[1], new ScheduleStepData(true));
             }
-                
-            boolean complete = true;
-            for (String childId: context.getExecutionPointer().children) {
-                complete = complete && context.getWorkflow().isBranchComplete(childId);
-            }                       
-
-            if (complete)
+            
+            if (context.getWorkflow().isBranchComplete(context.getExecutionPointer().id))
                 return ExecutionResult.next();
             
             return ExecutionResult.persist(persistenceData);

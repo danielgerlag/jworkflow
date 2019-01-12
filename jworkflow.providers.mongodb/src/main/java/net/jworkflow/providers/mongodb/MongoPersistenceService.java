@@ -133,6 +133,11 @@ public class MongoPersistenceService implements PersistenceService {
         mongoOperation.updateFirst(query, new Update().set("isProcessed", false), Event.class);
     }
     
+    @Override
+    public void provisionStore() {
+        
+    }
+    
     private synchronized void ensureIndexes() {
         if (!indexesChecked) {
             mongoOperation.indexOps(WorkflowInstance.class).ensureIndex(new Index().on("nextExecution", Direction.ASC));

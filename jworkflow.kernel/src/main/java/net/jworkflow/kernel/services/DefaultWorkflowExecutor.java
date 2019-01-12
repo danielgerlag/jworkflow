@@ -136,10 +136,17 @@ public class DefaultWorkflowExecutor implements WorkflowExecutor {
         if (workflow.getNextExecution() == null) {
             for (ExecutionPointer pointer : workflow.getExecutionPointers()) { 
                 if ((pointer.active) && (!pointer.children.isEmpty())) {
-                    if (workflow.getExecutionPointers().streamMany(x -> pointer.children.contains(x.id)).allMatch(x -> workflow.isBranchComplete(x.id))) {
+                    
+                    if (!workflow.isBranchComplete(pointer.id))
+                        continue;
+                    
+                    if ((pointer.sleepUntil == null) ) {
                         workflow.setNextExecution((long)0);
                         return;
                     }
+                    
+                    long pointerSleep = pointer.sleepUntil.toInstant().toEpochMilli();
+                    workflow.setNextExecution(Math.min(pointerSleep, workflow.getNextExecution() != null ? workflow.getNextExecution() : pointerSleep));
                 }
             }
         }

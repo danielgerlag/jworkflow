@@ -12,17 +12,21 @@ import java.util.Properties;
  * @author Daniel.Gerlag
  */
 public class TestData {
-        public int id;
-        public String name;
-        public Properties props;
+    private int pid;    
+    
+    public int id;
+    public String name;
+
+    
+    public int getPid() {
+        return pid;
+    }
+
+    
+    public void setPid(int pid) {
+        this.pid = pid;
+    }
         
         
-        public TestData(int id,String name) {
-            this.id = id;
-            this.name = name;
-            props = new Properties();
-            props.put("p1", "hi there");
-            props.put("p2", "bye");
-            
-        }
+        
     }

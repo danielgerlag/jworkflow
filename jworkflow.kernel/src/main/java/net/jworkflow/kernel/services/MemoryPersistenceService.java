@@ -139,5 +139,9 @@ public class MemoryPersistenceService implements PersistenceService {
             evt.get().isProcessed = false;
         }
     }
+
+    @Override
+    public void provisionStore() {
+    }
     
 }

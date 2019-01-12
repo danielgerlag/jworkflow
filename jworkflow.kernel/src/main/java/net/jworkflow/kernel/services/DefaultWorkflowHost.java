@@ -80,6 +80,7 @@ public class DefaultWorkflowHost implements WorkflowHost {
     @Override
     public void start() {
         active = true;
+        persistenceProvider.provisionStore();
         lockProvider.start();
         backgroundServices.forEach((svc) -> {
             svc.start();

@@ -1,12 +1,13 @@
 package net.jworkflow.kernel.models;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class WorkflowInstance {
+public class WorkflowInstance implements Serializable {
     
     private String id;
     private String workflowDefintionId;
@@ -105,27 +106,10 @@ public class WorkflowInstance {
         this.executionPointers = new ExecutionPointerCollection(pointers);
     }
     
-    public boolean isBranchComplete(String rootId) {
-        
-        ExecutionPointer root = executionPointers.findById(rootId);
-        
-        if (root.endTimeUtc == null)
-            return false;
-
-        Collection<ExecutionPointer> seed = executionPointers.findMany(x -> rootId.equals(x.predecessorId));
-        
-        Queue<ExecutionPointer> queue = new LinkedList<>(seed);
-
-        while (!queue.isEmpty()) {
-            ExecutionPointer item = queue.remove();
-            if (item.endTimeUtc == null) {
-                return false;
-            }
-
-            executionPointers.findMany(x -> item.id.equals(x.predecessorId))                
-                .forEach(child -> queue.add(child));
-        }
-
-        return true;        
+    public boolean isBranchComplete(String parentId) {
+        return executionPointers
+                .findByStackFrame(parentId)
+                .stream()
+                .allMatch(x -> x.endTimeUtc != null);
     }
 }

@@ -51,12 +51,12 @@ public class DynamoDBLockService implements LockService {
     }
     
     @Override
-    public synchronized boolean acquireLock(String id) {
+    public boolean acquireLock(String id) {
         if (client == null)
             throw new IllegalStateException();
         
         Map<String, AttributeValue> item = buildIdMap(id);
-        item.put("lockOwner", AttributeValue.builder().s(nodeId).build());
+        item.put("lock_owner", AttributeValue.builder().s(nodeId).build());
         item.put("expires", AttributeValue.builder().n(String.valueOf(Instant.now().toEpochMilli() + ttl)).build());
         
         Map<String, AttributeValue> condValues = new HashMap<>();
@@ -71,7 +71,7 @@ public class DynamoDBLockService implements LockService {
             );
             
             if (lock1Resp.sdkHttpResponse().isSuccessful()) {
-                localLocks.add(id);
+                addToLocal(id);
                 return true;
             }
         }
@@ -82,11 +82,11 @@ public class DynamoDBLockService implements LockService {
     }
 
     @Override
-    public synchronized void releaseLock(String id) {
+    public void releaseLock(String id) {
         if (client == null)
             throw new IllegalStateException();
         
-        localLocks.remove(id);
+        removeFromLocal(id);
         
         Map<String, AttributeValue> cv = new HashMap<>();
         cv.put(":nodeId", AttributeValue.builder().s(nodeId).build());
@@ -95,7 +95,7 @@ public class DynamoDBLockService implements LockService {
             client.deleteItem(x -> x.
                 tableName(tableName)
                 .key(buildIdMap(id))
-                .conditionExpression("lockOwner = :nodeId")
+                .conditionExpression("lock_owner = :nodeId")
                 .expressionAttributeValues(cv)
             );
         }
@@ -130,23 +130,36 @@ public class DynamoDBLockService implements LockService {
         try {
             for (String lock: localLocks) {                    
                 Map<String, AttributeValue> item = buildIdMap(lock);
-                item.put("lockOwner", AttributeValue.builder().s(nodeId).build());
+                item.put("lock_owner", AttributeValue.builder().s(nodeId).build());
                 item.put("expires", AttributeValue.builder().n(String.valueOf(Instant.now().toEpochMilli() + ttl)).build());
 
                 Map<String, AttributeValue> cv = new HashMap<>();
                 cv.put(":nodeId", AttributeValue.builder().s(nodeId).build());                    
 
-                client.putItem(x -> x
-                    .tableName(tableName)
-                    .conditionExpression("lockOwner = :nodeId")
-                    .expressionAttributeValues(cv)
-                    .item(item)
-                );
+                try {
+                    client.putItem(x -> x
+                        .tableName(tableName)
+                        .conditionExpression("lock_owner = :nodeId")
+                        .expressionAttributeValues(cv)
+                        .item(item)
+                    );
+                }
+                catch (ConditionalCheckFailedException ex) {
+                    Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.WARNING, "Sent heartbeat for lock that is no longer owned " + lock, ex);
+                }
             }
         }
         catch (Exception ex) {
             Logger.getLogger(DynamoDBLockService.class.getName()).log(Level.WARNING, "Error sending heartbeat", ex);
         }
+    }
+    
+    private synchronized void addToLocal(String id) {
+        localLocks.add(id);
+    }
+    
+    private synchronized void removeFromLocal(String id) {
+        localLocks.remove(id);
     }
     
     private void ensureTable() {
