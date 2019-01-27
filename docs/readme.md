@@ -34,7 +34,8 @@ dependencies {
  * [Error handling](04-error-handling.md)
  * [Control structures](05-control-structures.md)
  * [Saga transactions](06-sagas.md)
- * [Defining workflows in JSON](07-json.md)
+ * [Schedule and recur](07-schedule.md)
+ * [Defining workflows in JSON](08-json.md)
 
 
 ## Samples
