@@ -50,6 +50,26 @@ public class HelloWorkflow implements Workflow {
     }    
 }
 ```
+
+or as a JSON definition
+```json
+{
+  "id": "hello",
+  "version": 1,
+  "steps": [
+    {
+      "id": "step1",
+      "stepType": "com.application.Hello",
+      "nextStepId": "step2"
+    },
+    {
+      "id": "step2",
+      "stepType": "com.application.Goodbye"
+    }
+  ]
+}
+```
+
 The  id and version properties are used by the workflow host to identify a workflow definition.
 
 You can also define your steps inline

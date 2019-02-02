@@ -57,3 +57,33 @@ public class DataWorkflow implements Workflow<MyData> {
     }    
 }
 ```
+
+or as a JSON definition
+```json
+{
+  "id": "data-workflow",
+  "version": 1,
+  "dataType": "com.application.MyData",
+  "steps": [    
+    {
+      "id": "add",
+      "stepType": "com.application.AddNumbers",
+      "nextStepId": "display",
+      "inputs": {
+          "value1": "data.value1",
+          "value2": "data.value2"
+      },
+      "outputs": {
+          "value3": "step.answer"
+      }
+    },
+    {
+      "id": "display",
+      "stepType": "com.application.DisplayAnswer",
+      "inputs": {
+          "answer": "data.value3"
+      }
+    }
+  ]
+}
+```

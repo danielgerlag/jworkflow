@@ -20,3 +20,18 @@ host.publishEvent("myEvent", "0", "hello");
 #### Effective Date
 
 You can also specify an effective date when waiting for events, which allows you to respond to events that may have already occurred in the past, or only ones that occur after the effective date.
+
+#### JSON syntax
+```json
+{
+    "id": "MyWaitStep",
+    "stepType": "net.jworkflow.primitives.WaitFor",
+    "nextStepId": "...",
+    "cancelCondition": "...",
+    "inputs": {
+        "eventName": "\"Event1\"",
+        "eventKey": "\"Key1\"",
+        "effectiveDate": "new Date()"
+    }
+}
+```
