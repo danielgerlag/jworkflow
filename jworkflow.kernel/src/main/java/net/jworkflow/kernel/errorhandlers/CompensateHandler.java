@@ -29,12 +29,8 @@ public class CompensateHandler implements StepErrorHandler {
 
     @Override
     public void handle(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer pointer, WorkflowStep step, Queue<ExecutionPointer> bubleupQueue) {
-        Stack<String> scope = (Stack<String>)pointer.callStack;
+        Stack<String> scope = (Stack<String>)pointer.callStack.clone();
         scope.push(pointer.id);
-
-        pointer.active = false;
-        pointer.endTimeUtc = Date.from(Instant.now(clock));
-        pointer.status = PointerStatus.Failed;
 
         while (!scope.isEmpty()) {
             String pointerId = scope.pop();
@@ -44,22 +40,29 @@ public class CompensateHandler implements StepErrorHandler {
             boolean resume = true;
             boolean revert = false;
 
-            if (!scope.isEmpty()) {
-                String parentId = scope.peek();
+            Stack<String> txnStack = (Stack<String>)scope.clone();
+            while (!txnStack.isEmpty()) {
+                String parentId = txnStack.pop();
                 ExecutionPointer parentPointer = workflow.getExecutionPointers().findById(parentId);
                 WorkflowStep parentStep = def.findStep(parentPointer.stepId);
-                resume = parentStep.getResumeChildrenAfterCompensation();
-                revert = parentStep.getRevertChildrenAfterCompensation();
+                
+                if ((!parentStep.getResumeChildrenAfterCompensation()) || (parentStep.getRevertChildrenAfterCompensation())) {
+                    resume = parentStep.getResumeChildrenAfterCompensation();
+                    revert = parentStep.getRevertChildrenAfterCompensation();
+                    break;
+                }
             }
 
             if ((ptrstep.getRetryBehavior() != ErrorBehavior.COMPENSATE) && (ptrstep.getRetryBehavior() != null)){
                 bubleupQueue.add(ptr);
                 continue;            
             }
+            
+            pointer.active = false;
+            pointer.endTimeUtc = Date.from(Instant.now(clock));
+            pointer.status = PointerStatus.Failed;
 
             if (ptrstep.getCompensationStepId() != null) {
-                ptr.active = false;
-                ptr.endTimeUtc = Date.from(Instant.now(clock));
                 ptr.status = PointerStatus.Compensated;
 
                 ExecutionPointer compensationPointer = pointerFactory.buildCompensationPointer(def, ptr, pointer, ptrstep.getCompensationStepId());
