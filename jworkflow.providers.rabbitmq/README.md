@@ -31,7 +31,7 @@ dependencies {
 import com.rabbitmq.client.ConnectionFactory;
 import net.jworkflow.providers.rabbitmq.RabbitMQProvider;
 ...
-...
+```
 
 ```java
 WorkflowModule module = new WorkflowModule();
