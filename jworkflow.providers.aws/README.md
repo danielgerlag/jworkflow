@@ -34,7 +34,6 @@ import net.jworkflow.providers.aws.DynamoDBPersistenceProvider;
 ...
 ...
 
-```java
 WorkflowModule module = new WorkflowModule();
 
 module.usePersistence(new DynamoDBPersistenceProvider(Region.US_WEST_1, "table-prefix"));
@@ -53,7 +52,6 @@ import net.jworkflow.providers.aws.SQSProvider;
 ...
 ...
 
-```java
 WorkflowModule module = new WorkflowModule();
 
 module.useQueue(new SQSProvider(Region.US_WEST_1));
@@ -72,7 +70,6 @@ import net.jworkflow.providers.aws.DynamoDBLockProvider;
 ...
 ...
 
-```java
 WorkflowModule module = new WorkflowModule();
 
 module.useDistibutedLock(new DynamoDBLockProvider(Region.US_WEST_1, "jworkflowLockTable")); //DynamoDB table name of your choice
