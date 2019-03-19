@@ -31,12 +31,12 @@ dependencies {
 import org.redisson.config.Config;
 import net.jworkflow.providers.redis.RedisLockServiceProvider;
 ...
-
+```
 and / or
 ```java
 import net.jworkflow.providers.redis.RedisQueueServiceProvider;
 ...
-...
+```
 
 ```java
 WorkflowModule module = new WorkflowModule();
