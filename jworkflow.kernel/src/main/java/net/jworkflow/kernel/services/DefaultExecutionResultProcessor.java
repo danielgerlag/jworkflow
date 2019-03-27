@@ -90,10 +90,9 @@ public class DefaultExecutionResultProcessor implements ExecutionResultProcessor
             ExecutionPointer exceptionPointer = queue.remove();
             WorkflowStep exceptionStep = def.findStep(exceptionPointer.stepId);
             
-            Integer compensatingStepId = findScopeCompensationStepId(workflow, def, exceptionPointer);
             ErrorBehavior errorOption = exceptionStep.getRetryBehavior();
             if (errorOption == null) {
-                if (compensatingStepId != null) {
+                if (shouldCompensate(workflow, def, exceptionPointer)) {
                     errorOption = ErrorBehavior.COMPENSATE;
                 }
                 else {
@@ -108,7 +107,7 @@ public class DefaultExecutionResultProcessor implements ExecutionResultProcessor
         }
     }    
     
-    private Integer findScopeCompensationStepId(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer currentPointer) {
+    private boolean shouldCompensate(WorkflowInstance workflow, WorkflowDefinition def, ExecutionPointer currentPointer) {
         Stack<String> scope = (Stack<String>)currentPointer.callStack.clone();
         scope.push(currentPointer.id);
 
@@ -116,10 +115,10 @@ public class DefaultExecutionResultProcessor implements ExecutionResultProcessor
             String pointerId = scope.pop();
             ExecutionPointer pointer = workflow.getExecutionPointers().findById(pointerId);
             WorkflowStep step = def.findStep(pointer.stepId);
-            if (step.getCompensationStepId() != null)
-                return step.getCompensationStepId();
+            if ((step.getCompensationStepId() != null) || (step.getRevertChildrenAfterCompensation()))
+                return true;
         }
 
-        return null;
+        return false;
     }
 }
