@@ -1,5 +1,7 @@
 # JWorkflow
 
+[<img src="https://api.gitsponsors.com/api/badge/img?id=78961828" height="20">](https://api.gitsponsors.com/api/badge/link?p=BEgKtI+LTLagRYOAgwn7CorAqodkvLwNTw7nilneEcLpaMh39jIiLlr3MCq/2Xmow7raks2SyYvn3pDc/5nyPA==)
+
 JWorkflow is a light weight workflow library for Java.  It supports pluggable persistence and concurrency providers to allow for multi-node clusters.
 
 ## Installing
